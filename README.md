@@ -5,7 +5,9 @@ Implementation of Show, Attend and Read: A Simple and Strong Baseline for Irregu
 ## Source
 
 [1] Original paper: https://arxiv.org/abs/1811.00751
+
 [2] Official code by the authors in torch: https://github.com/wangpengnorman/SAR-Strong-Baseline-for-Text-Recognition
+
 [3] A TensorFlow implementation: https://github.com/Pay20Y/SAR_TF
 
 
