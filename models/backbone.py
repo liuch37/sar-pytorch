@@ -6,7 +6,7 @@ import torch.nn as nn
 __all__ = ['backbone']
     
 class basicblock(nn.Module):
-    def __init__(self,depth_in, output_dim, kernel_size, stride):
+    def __init__(self, depth_in, output_dim, kernel_size, stride):
         super(basicblock, self).__init__()
         self.identity = nn.Identity()
         self.conv_res = nn.Conv2d(depth_in, output_dim, kernel_size=1, stride=1)
@@ -16,7 +16,7 @@ class basicblock(nn.Module):
         self.depth_in = depth_in
         self.output_dim = output_dim
 
-    def forward(self,x):
+    def forward(self, x):
         # create shortcut path
         if self.depth_in == self.output_dim:
             residual = self.identity(x)
@@ -32,7 +32,7 @@ class basicblock(nn.Module):
 
 class backbone(nn.Module):
 
-    def __init__(self,input_dim):
+    def __init__(self, input_dim):
         super(backbone, self).__init__()
         self.conv1 = nn.Conv2d(input_dim, 64, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
@@ -63,7 +63,7 @@ class backbone(nn.Module):
         # Block 3 ends
         self.conv6 = nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1)
 
-    def forward(self,x):
+    def forward(self, x):
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.maxpool1(x)
@@ -89,7 +89,6 @@ class backbone(nn.Module):
 
 # unit test
 if __name__ == '__main__':
-    import numpy as np
     import torch
 
     batch_size = 32
