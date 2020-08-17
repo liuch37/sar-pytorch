@@ -4,7 +4,7 @@ This code is to construct decoder for SAR - two layer LSTMs combined with featur
 import torch
 import torch.nn as nn
 
-__all__ = ['word_embedding','attention','decoder']
+__all__ = ['word_embedding','attention','fuse','decoder']
 
 class word_embedding(nn.Module):
     def __init__(self, output_classes, embedding_dim):
@@ -54,14 +54,37 @@ class attention(nn.Module):
         attention_weights = self.softmax2d(combine) # [batch, 1, H, W]
         glimpse = feature_map_origin * attention_weights.repeat(1, self.D, 1, 1) # [batch, D, H, W]
         glimpse = torch.sum(glimpse, dim=(2,3)) # [batch, D]
-        glimpse = glimpse.unsqueeze(2) # [batch, D, 1]
-        glimpse = glimpse.unsqueeze(3) # [batch, D, 1, 1]
 
         return glimpse
 
+class fuse(nn.Module):
+    def __init__(self, output_classes, hidden_units, D):
+        super(fuse, self).__init__()
+        '''
+        output_classes: number of output classes for the one hot encoding of a word
+        hidden_units: hidden units for decoder LSTM
+        D: glimpse depth
+        '''
+        self.linear = nn.Linear(hidden_units+D, output_classes) # linear transformation
+
+    def forward(self, h, g):
+        combine = torch.cat((h, g), 1)
+        y = self.linear(combine)
+
+        return y
+
 class decoder(nn.Module):
-    def __init__(self, output_classes, hidden_units=512, layers=2, embedding_dim=512, seq_len=40, lstm_keep_prob=1.0, att_keep_prob=1.0, training=True):
+    def __init__(self, output_classes, hidden_units=512, layers=2, embedding_dim=512, seq_len=40, keep_prob=1.0, training=True):
         super(decoder, self).__init__()
+        '''
+        output_classes: number of output classes for the one hot encoding of a word
+        hidden_units: hidden units for LSTM
+        layers: number of layers for LSTM
+        embedding_dim: embedding dimension for a word
+        seq_len: output sequence length T
+        keep_prob: dropout probability for LSTM
+        training: using training mode or not
+        '''
         pass
 
     def forward(self,x):
@@ -78,6 +101,7 @@ if __name__ == '__main__':
     output_classes = 94
     embedding_dim = 512
     hidden_units_encoder = 512
+    hidden_units_decoder = 512
 
     one_hot_embedding = torch.randn(batch_size, output_classes)
     one_hot_embedding[one_hot_embedding>0] = torch.ones(1)
@@ -95,3 +119,8 @@ if __name__ == '__main__':
     attention_model = attention(hidden_units_encoder, embedding_dim, Height, Width, Channel)
     glimpse = attention_model(hw, feature_map)
     print("Glimpse size is:", glimpse.shape)
+
+    h = torch.randn(batch_size, hidden_units_decoder)
+    fuse_model = fuse(output_classes, hidden_units_decoder, Channel)
+    y = fuse_model(h, glimpse)
+    print("Output y size is:", y.shape)
