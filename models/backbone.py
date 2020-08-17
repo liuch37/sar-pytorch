@@ -3,7 +3,7 @@ This code is to construct backbone network for SAR - with 13 layers of customize
 '''
 import torch.nn as nn
 
-__all__ = ['backbone']
+__all__ = ['basicblock','backbone']
     
 class basicblock(nn.Module):
     def __init__(self, depth_in, output_dim, kernel_size, stride):

@@ -27,9 +27,9 @@ class encoder(nn.Module):
         x = self.maxpool(x) # [batch, C, 1, W]
         x = torch.squeeze(x) # [batch, C, W]
         x = x.permute(0,2,1) # [batch, W, C]
-        _, (h, _) = self.lstm(x, (h_0, c_0)) # h with shape (layers*1, batch, hidden_uints)
+        _, (h, _) = self.lstm(x, (h_0, c_0)) # h with shape [layers*1, batch, hidden_uints]
 
-        return h[-1]
+        return h[-1] # shape [batch, hidden_units]
 
 # unit test
 if __name__ == '__main__':
