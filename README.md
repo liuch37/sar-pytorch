@@ -5,9 +5,10 @@ Implementation of Show, Attend and Read: A Simple and Strong Baseline for Irregu
 ## To Do List:
 
 - [x] Backbone model
-- [x] Encoder
-- [ ] Decoder
-- [ ] Datasets
+- [x] Encoder model
+- [ ] Decoder model
+- [ ] Integrated model
+- [ ] Data processing
 - [ ] Training
 - [ ] Inference
 
