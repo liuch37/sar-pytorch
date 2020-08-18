@@ -135,7 +135,6 @@ class decoder(nn.Module):
 
 # unit test
 if __name__ == '__main__':
-    import torch
 
     batch_size = 2
     Height = 48

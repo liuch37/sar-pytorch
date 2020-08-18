@@ -1,6 +1,7 @@
 '''
 This code is to construct backbone network for SAR - with 13 layers of customized ResNet.
 '''
+import torch
 import torch.nn as nn
 
 __all__ = ['basicblock','backbone']
@@ -89,15 +90,13 @@ class backbone(nn.Module):
 
 # unit test
 if __name__ == '__main__':
-    import torch
 
     batch_size = 32
     Height = 48
     Width = 160
     Channel = 3
 
-    input_images = torch.randn(batch_size,Height,Width,Channel)
-    input_images = input_images.permute(0,3,1,2) # need to transpose input into (batch, C, H, W)
+    input_images = torch.randn(batch_size,Channel,Height,Width)
     model = backbone(Channel)
     output_features = model(input_images)
 

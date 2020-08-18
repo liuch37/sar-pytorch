@@ -33,7 +33,6 @@ class encoder(nn.Module):
 
 # unit test
 if __name__ == '__main__':
-    import torch
 
     batch_size = 32
     Height = 48
