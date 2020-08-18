@@ -21,16 +21,15 @@ class word_embedding(nn.Module):
         return x
 
 class attention(nn.Module):
-    def __init__(self, hidden_units_encoder, embedding_dim, H, W, D):
+    def __init__(self, hidden_units, H, W, D):
         super(attention, self).__init__()
         '''
-        hidden_units_encoder: hidden units of encoder
-        embedding_dim: embedding dimension of a word
+        hidden_units: hidden units of decoder
         H: height of feature map
         W: width of feature map
         D: depth of feature map
         '''
-        self.conv1 = nn.Conv2d(hidden_units_encoder, D, kernel_size=1, stride=1)
+        self.conv1 = nn.Conv2d(hidden_units, D, kernel_size=1, stride=1)
         self.conv2 = nn.Conv2d(D, D, kernel_size=3, stride=1, padding=1)
         self.conv3 = nn.Conv2d(D, 1, kernel_size=1, stride=1)
         self.softmax2d = nn.Softmax2d()
@@ -40,7 +39,7 @@ class attention(nn.Module):
 
     def forward(self, h, feature_map):
         '''
-        h: hidden state from encoder output, with size [batch, hidden_units]
+        h: hidden state from decoder output, with size [batch, hidden_units]
         feature_map: feature map from backbone network, with size [batch, channel, H, W]
         '''
         # reshape hidden state [batch, hidden_units] to [batch, hidden_units, 1, 1]
@@ -58,31 +57,31 @@ class attention(nn.Module):
         return glimpse, attention_weights
 
 class decoder(nn.Module):
-    def __init__(self, output_classes, H, W, D=512, hidden_units_encoder=512, hidden_units_decoder=512, seq_len=40, training=True):
+    def __init__(self, output_classes, H, W, D=512, hidden_units=512, seq_len=40, training=True):
         super(decoder, self).__init__()
         '''
         output_classes: number of output classes for the one hot encoding of a word
         H: feature map height
         W: feature map width
         D: glimpse depth
-        hidden_units_encoder: hidden units of encoder for LSTM
-        hidden_units_decoder: hidden units of decoder LSTM
+        hidden_units: hidden units of encoder/decoder for LSTM
         seq_len: output sequence length T
         training: using training mode or not
         '''
-        self.linear1 = nn.Linear(output_classes, hidden_units_encoder)
-        self.lstmcell1 = nn.LSTMCell(hidden_units_encoder, hidden_units_decoder)
-        self.attention = attention(hidden_units_encoder, hidden_units_decoder, H, W, D)
-        self.linear2 = nn.Linear(hidden_units_decoder+D, output_classes)
+        self.linear1 = nn.Linear(output_classes, hidden_units)
+        self.lstmcell1 = nn.LSTMCell(hidden_units, hidden_units)
+        self.lstmcell2 = nn.LSTMCell(hidden_units, hidden_units)
+        self.attention = attention(hidden_units, H, W, D)
+        self.linear2 = nn.Linear(hidden_units+D, output_classes)
         self.seq_len = seq_len
         self.training = training
         self.START_TOKEN = output_classes - 3 # Same like EOS TOKEN
         self.output_classes = output_classes
-        self.hidden_units_decoder = hidden_units_decoder
+        self.hidden_units = hidden_units
 
     def forward(self,hw,y,V):
         '''
-        hw: embedded feature from encoder [batch, hidden_units_encoder]
+        hw: embedded feature from encoder [batch, hidden_units]
         y: ground truth label one hot encoder [batch, seq, output_classes]
         V: feature map for backbone network [batch, D, H, W]
         '''
@@ -92,14 +91,18 @@ class decoder(nn.Module):
         y_onehot = torch.FloatTensor(batch_size, self.output_classes)
         for t in range(self.seq_len + 1):
             if t == 0:
-                inputs_y = hw # size [batch, hidden_units_encoder]
-                hx = torch.FloatTensor(batch_size, self.hidden_units_decoder) # initial h0
-                cx = torch.FloatTensor(batch_size, self.hidden_units_decoder) # initial c0
+                inputs_y = hw # size [batch, hidden_units]
+                # LSTM layer 1 initialization:
+                hx_1 = torch.FloatTensor(batch_size, self.hidden_units) # initial h0_1
+                cx_1 = torch.FloatTensor(batch_size, self.hidden_units) # initial c0_1
+                # LSTM layer 2 initialization:
+                hx_2 = torch.FloatTensor(batch_size, self.hidden_units) # initial h0_2
+                cx_2 = torch.FloatTensor(batch_size, self.hidden_units) # initial c0_2
             elif t == 1:
                 y_onehot.zero_()
                 y_onehot[:,self.START_TOKEN] = 1.0
                 inputs_y = y_onehot
-                inputs_y = self.linear1(inputs_y) # [batch, hidden_units_encoder]
+                inputs_y = self.linear1(inputs_y) # [batch, hidden_units]
             else:
                 if self.training:
                     inputs_y = y[:,t-2,:] # [batch, output_classes]
@@ -113,10 +116,10 @@ class decoder(nn.Module):
                 inputs_y = self.linear1(inputs_y) # [batch, hidden_units_encoder]
 
             # LSTM cells combined with attention and fusion layer
-            # TO DO: implement customized two layer LSTM cells!!!!!!
-            hx, cx = self.lstmcell1(inputs_y, (hx,cx))
-            glimpse, att_weights = self.attention(hx, V) # [batch, D], [batch, 1, H, W]
-            combine = torch.cat((hx,glimpse), dim=1) # [batch, hidden_units_decoder+D]
+            hx_1, cx_1 = self.lstmcell1(inputs_y, (hx_1,cx_1))
+            hx_2, cx_2 = self.lstmcell2(hx_1, (hx_2,cx_2))
+            glimpse, att_weights = self.attention(hx_2, V) # [batch, D], [batch, 1, H, W]
+            combine = torch.cat((hx_2,glimpse), dim=1) # [batch, hidden_units_decoder+D]
             out = self.linear2(combine) # [batch, output_classes]
             outputs.append(out)
             attention_weights.append(att_weights)
@@ -140,8 +143,7 @@ if __name__ == '__main__':
     Channel = 512
     output_classes = 94
     embedding_dim = 512
-    hidden_units_encoder = 512
-    hidden_units_decoder = 512
+    hidden_units = 512
     layers_decoder = 2
     seq_len = 40
 
@@ -154,22 +156,22 @@ if __name__ == '__main__':
     embedding_transform = embedding_model(one_hot_embedding)
     print("Embedding transform size is:", embedding_transform.shape)
 
-    hw = torch.randn(batch_size, hidden_units_encoder)
+    hw = torch.randn(batch_size, hidden_units)
     feature_map = torch.randn(batch_size,Channel,Height,Width)
     print("Feature map size is:", feature_map.shape)
 
-    attention_model = attention(hidden_units_encoder, embedding_dim, Height, Width, Channel)
+    attention_model = attention(hidden_units, Height, Width, Channel)
     glimpse, attention_weights = attention_model(hw, feature_map)
     print("Glimpse size is:", glimpse.shape)
     print("Attention weight size is:", attention_weights.shape)
 
     label = torch.randn(batch_size, seq_len, output_classes)
-    decoder_model_training = decoder(output_classes, Height, Width, Channel, hidden_units_encoder, hidden_units_decoder, seq_len, True)
+    decoder_model_training = decoder(output_classes, Height, Width, Channel, hidden_units, seq_len, True)
     outputs, attention_weights = decoder_model_training(hw, label, feature_map)
     print("Output size is:", outputs.shape)
     print("Attention_weights size is:", attention_weights.shape)
 
-    decoder_model_inference = decoder(output_classes, Height, Width, Channel, hidden_units_encoder, hidden_units_decoder, seq_len, False)
+    decoder_model_inference = decoder(output_classes, Height, Width, Channel, hidden_units, seq_len, False)
     outputs, attention_weights = decoder_model_inference(hw, label, feature_map)
     print("Output size is:", outputs.shape)
     print("Attention_weights size is:", attention_weights.shape)
