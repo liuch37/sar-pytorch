@@ -4,7 +4,7 @@ This code is to construct decoder for SAR - two layer LSTMs combined with featur
 import torch
 import torch.nn as nn
 
-__all__ = ['word_embedding','attention','fuse','decoder']
+__all__ = ['word_embedding','attention','decoder']
 
 class word_embedding(nn.Module):
     def __init__(self, output_classes, embedding_dim):
@@ -57,38 +57,53 @@ class attention(nn.Module):
 
         return glimpse
 
-class fuse(nn.Module):
-    def __init__(self, output_classes, hidden_units, D):
-        super(fuse, self).__init__()
-        '''
-        output_classes: number of output classes for the one hot encoding of a word
-        hidden_units: hidden units for decoder LSTM
-        D: glimpse depth
-        '''
-        self.linear = nn.Linear(hidden_units+D, output_classes) # linear transformation
-
-    def forward(self, h, g):
-        combine = torch.cat((h, g), 1)
-        y = self.linear(combine)
-
-        return y
-
 class decoder(nn.Module):
-    def __init__(self, output_classes, hidden_units=512, layers=2, embedding_dim=512, seq_len=40, keep_prob=1.0, training=True):
+    def __init__(self, output_classes, D=512, hidden_units_encoder=512, hidden_units_decoder=512, layers=2, seq_len=40, keep_prob=1.0, training=True):
         super(decoder, self).__init__()
         '''
         output_classes: number of output classes for the one hot encoding of a word
-        hidden_units: hidden units for LSTM
+        D: glimpse depth
+        hidden_units_encoder: hidden units of encoder for LSTM
+        hidden_units_decoder: hidden units of decoder LSTM
         layers: number of layers for LSTM
-        embedding_dim: embedding dimension for a word
         seq_len: output sequence length T
         keep_prob: dropout probability for LSTM
         training: using training mode or not
         '''
-        pass
+        self.linear1 = nn.Linear(output_classes, hidden_units_encoder)
+        self.lstmcell = nn.LSTMCell(hidden_units_encoder, hidden_units_decoder)
+        self.linear2 = nn.Linear(hidden_units_decoder+D, output_classes)
+        self.seq_len = seq_len
+        self.training = training
+        self.START_TOKEN = output_classes - 3 # Same like EOS TOKEN
+        self.output_classes = output_classes
 
-    def forward(self,x):
-        pass
+    def forward(self,h,y,V):
+        outputs = []
+        attention_weights = []
+        batch_size = h.shape[0]
+        y_onehot = torch.FloatTensor(batch_size, self.output_classes)
+        for t in range(self.seq_len + 1):
+            if t == 0:
+                inputs_y = h # size [batch, hidden_units_encoder]
+            elif t == 1:
+                y_onehot.zero_()
+                y_onehot[:,self.START_TOKEN] = 1.0
+                inputs_y = y_onehot
+                inputs_y = self.linear1(inputs_y) # [batch, hidden_units_encoder]
+            else:
+                if self.training:
+                    inputs_y = y[t-2]
+                else:
+                    # greedy search for now - beam search to be implemented!
+                    index = torch.argmax(outputs[t-1], dim=-1) # [batch]
+                    index = index.unsqueeze(1) # [batch, 1]
+                    y_onehot.zero_()
+                    inputs_y = y_onehot.scatter_(1, index, 1) # [batch, output_classes]
+
+                inputs_y = self.linear1(inputs_y) # [batch, hidden_units_encoder]
+
+            # IMPLEMENT the rest LSTM cells with attention and fusion layer - return outputs and attention weights!
 
 # unit test
 if __name__ == '__main__':
@@ -119,8 +134,3 @@ if __name__ == '__main__':
     attention_model = attention(hidden_units_encoder, embedding_dim, Height, Width, Channel)
     glimpse = attention_model(hw, feature_map)
     print("Glimpse size is:", glimpse.shape)
-
-    h = torch.randn(batch_size, hidden_units_decoder)
-    fuse_model = fuse(output_classes, hidden_units_decoder, Channel)
-    y = fuse_model(h, glimpse)
-    print("Output y size is:", y.shape)
