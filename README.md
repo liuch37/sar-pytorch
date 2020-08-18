@@ -2,7 +2,7 @@
 
 Implementation of Show, Attend and Read: A Simple and Strong Baseline for Irregular Text Recognition in AAAI 2019, with PyTorch. 
 
-## Tasks:
+## Task:
 
 - [x] Backbone model
 - [x] Encoder model
