@@ -3,9 +3,9 @@ This code is to construct the complete SAR model by combining backbone+encoder+d
 '''
 import torch
 import torch.nn as nn
-from backbone import backbone
-from encoder import encoder
-from decoder import decoder
+from .backbone import backbone
+from .encoder import encoder
+from .decoder import decoder
 
 __all__ = ['sar']
 
@@ -47,6 +47,12 @@ class sar(nn.Module):
 
 # unit test
 if __name__ == '__main__':
+    '''
+    Need to change the import to do unit test:
+    from backbone import backbone
+    from encoder import encoder
+    from decoder import decoder
+    '''
 
     batch_size = 2
     Height = 12
