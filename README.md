@@ -14,7 +14,7 @@ Implementation of Show, Attend and Read: A Simple and Strong Baseline for Irregu
 
 ## Supported Dataset
 
-- [x] Street View Text http://vision.ucsd.edu/~kai/svt/
+- [x] Street View Text: http://vision.ucsd.edu/~kai/svt/
 
 ## Source
 
