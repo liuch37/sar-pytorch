@@ -26,6 +26,8 @@ class encoder(nn.Module):
         c_0 = torch.zeros(self.layers*1, x.size(0), self.hidden_units)
         x = self.maxpool(x) # [batch, C, 1, W]
         x = torch.squeeze(x) # [batch, C, W]
+        if len(x.size()) == 2: # [C, W]
+            x = x.unsqueeze(0) # [batch, C, W]
         x = x.permute(0,2,1) # [batch, W, C]
         _, (h, _) = self.lstm(x, (h_0, c_0)) # h with shape [layers*1, batch, hidden_uints]
 
