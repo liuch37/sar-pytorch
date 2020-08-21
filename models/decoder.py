@@ -32,6 +32,7 @@ class attention(nn.Module):
         self.conv1 = nn.Conv2d(hidden_units, D, kernel_size=1, stride=1)
         self.conv2 = nn.Conv2d(D, D, kernel_size=3, stride=1, padding=1)
         self.conv3 = nn.Conv2d(D, 1, kernel_size=1, stride=1)
+        self.dropout = nn.Dropout(0.5)
         self.softmax2d = nn.Softmax2d()
         self.H = H
         self.W = W
@@ -49,7 +50,7 @@ class attention(nn.Module):
         h = h.repeat(1, 1, self.H, self.W) # tiling to [batch, D, H, W]
         feature_map_origin = feature_map
         feature_map = self.conv2(feature_map) # [batch, D, H, W]
-        combine = self.conv3(torch.tanh(feature_map + h)) # [batch, 1, H, W]
+        combine = self.conv3(self.dropout(torch.tanh(feature_map + h))) # [batch, 1, H, W]
         attention_weights = self.softmax2d(combine) # [batch, 1, H, W]
         glimpse = feature_map_origin * attention_weights.repeat(1, self.D, 1, 1) # [batch, D, H, W]
         glimpse = torch.sum(glimpse, dim=(2,3)) # [batch, D]
