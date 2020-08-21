@@ -123,10 +123,11 @@ if __name__ == '__main__':
     
     if trained_model_path != '':
         model.load_state_dict(torch.load(trained_model_path))
-    
+
     optimizer = optim.Adam(model.parameters(), lr=0.001)
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=300, gamma=0.9)
-        
+    lmbda = lambda epoch: 0.9 if epoch < 300 else 1.0
+    scheduler = optim.lr_scheduler.MultiplicativeLR(optimizer, lmbda)
+
     num_batch = math.ceil(len(train_dataset) / batch_size)
     
     # train, evaluate, and save model
@@ -150,11 +151,23 @@ if __name__ == '__main__':
             train_batch_size = predict.shape[0]
             pred_choice = predict.max(2)[1] # [batch_size, seq_len]
             target = y.max(2)[1] # [batch_size, seq_len]
-            metric, metric_list, predict_words, labeled_words = performance_evaluate(pred_choice.detach().cpu().numpy(), target.detach().cpu().numpy(), voc, char2id, id2char, 'accuracy')
+            metric, metric_list, predict_words, labeled_words = performance_evaluate(pred_choice.detach().cpu().numpy(), target.detach().cpu().numpy(), voc, char2id, id2char, 'editdistance')
             M_list += metric_list
             print('[Epoch %d: %d/%d] train loss: %f accuracy: %f' % (epoch, i, num_batch, loss.item(), metric))
+            print("predict prob:", predict[0][0])
             print("predict words:", predict_words[0])
             print("labeled words:", labeled_words[0])
         print("Epoch {} average accuracy: {}".format(epoch, float(sum(M_list)/len(M_list))))
 
         scheduler.step()
+
+        '''
+        # Validation
+        with torch.set_grad_enabled(False):
+            for local_batch, local_labels in validation_generator:
+                # Transfer to GPU
+                local_batch, local_labels = local_batch.to(device), local_labels.to(device)
+
+                # Model computations
+                [...]
+        '''
