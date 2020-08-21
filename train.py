@@ -33,6 +33,7 @@ if __name__ == '__main__':
     parser.add_argument('--dataset', type=str, required=True, help="dataset path")
     parser.add_argument('--dataset_type', type=str, default='svt', help="dataset type")
     parser.add_argument('--gpu', nargs='+', type=int, default=-1, help="GPU indices")
+    parser.add_argument('--metric', type=str, default='accuracy', help="evaluation metric - accuracy|editdistance")
     
     opt = parser.parse_args()
     print(opt)
@@ -76,6 +77,7 @@ if __name__ == '__main__':
     dataset_type = opt.dataset_type
     output_path = opt.output
     trained_model_path = opt.model
+    eval_metric = opt.metric
     
     # create dataset
     print("Create dataset......")
@@ -132,11 +134,20 @@ if __name__ == '__main__':
     
     # train, evaluate, and save model
     print("Training starts......")
+    if eval_metric == 'accuracy':
+        best_acc = 0.0
+    elif eval_metric == 'editdistance':
+        best_acc = float('inf')
+    else:
+        print("Wrong --metric argument, set it to default")
+        eval_metric = 'accuracy'
+        best_acc = 0.0
+
     for epoch in range(epochs):
         M_list = []
         for i, data in enumerate(train_dataloader):
             x = data[0] # [batch_size, Channel, Height, Width]
-            y = data[1] # [batch_size, seq_len, output_classes] 
+            y = data[1] # [batch_size, seq_len, output_classes]
             x, y = x.to(device), y.to(device)
             #print(x.shape, y.shape)
             optimizer.zero_grad()
@@ -151,23 +162,41 @@ if __name__ == '__main__':
             train_batch_size = predict.shape[0]
             pred_choice = predict.max(2)[1] # [batch_size, seq_len]
             target = y.max(2)[1] # [batch_size, seq_len]
-            metric, metric_list, predict_words, labeled_words = performance_evaluate(pred_choice.detach().cpu().numpy(), target.detach().cpu().numpy(), voc, char2id, id2char, 'editdistance')
+            metric, metric_list, predict_words, labeled_words = performance_evaluate(pred_choice.detach().cpu().numpy(), target.detach().cpu().numpy(), voc, char2id, id2char, eval_metric)
             M_list += metric_list
             print('[Epoch %d: %d/%d] train loss: %f accuracy: %f' % (epoch, i, num_batch, loss.item(), metric))
-            print("predict prob:", predict[0][0])
-            print("predict words:", predict_words[0])
-            print("labeled words:", labeled_words[0])
-        print("Epoch {} average accuracy: {}".format(epoch, float(sum(M_list)/len(M_list))))
+            #print("predict prob:", predict[0][0])
+            #print("predict words:", predict_words[0])
+            #print("labeled words:", labeled_words[0])
+        print("Epoch {} average train accuracy: {}".format(epoch, float(sum(M_list)/len(M_list))))
 
         scheduler.step()
 
-        '''
         # Validation
+        print("Testing......")
         with torch.set_grad_enabled(False):
-            for local_batch, local_labels in validation_generator:
-                # Transfer to GPU
-                local_batch, local_labels = local_batch.to(device), local_labels.to(device)
-
-                # Model computations
-                [...]
-        '''
+            M_list = []
+            for i, data in enumerate(test_dataloader):
+                x = data[0] # [batch_size, Channel, Height, Width]
+                y = data[1] # [batch_size, seq_len, output_classes]
+                x, y = x.to(device), y.to(device)
+                model = model.eval()
+                predict, _, _, _ = model(x, y)
+                # prediction evaluation
+                train_batch_size = predict.shape[0]
+                pred_choice = predict.max(2)[1] # [batch_size, seq_len]
+                target = y.max(2)[1] # [batch_size, seq_len]
+                metric, metric_list, predict_words, labeled_words = performance_evaluate(pred_choice.detach().cpu().numpy(), target.detach().cpu().numpy(), voc, char2id, id2char, eval_metric)
+                M_list += metric_list
+            acc = float(sum(M_list)/len(M_list))
+            print("Epoch {} average test accuracy: {}".format(epoch, acc))
+            if eval_metric == 'accuracy':
+                if acc > best_acc:
+                    print("Save current best model with accuracy:", acc)
+                    best_acc = acc
+                    torch.save(model.state_dict(), '%s/model_%d_%.4f.pth' % (output_path, epoch, acc))
+            elif eval_metric == 'editdistance':
+                if acc < best_acc:
+                    print("Save current best model with accuracy:", acc)
+                    best_acc = acc
+                    torch.save(model.state_dict(), '%s/model_%d_%.4f.pth' % (output_path, epoch, acc))
