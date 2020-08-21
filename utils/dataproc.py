@@ -43,12 +43,12 @@ def performance_evaluate(pred_choice, target, voc, char2id, id2char, metrics_typ
         acc_list = [(pred == tar) for pred, tar in zip(predicts, labels)]
         accuracy = 1.0 * sum(acc_list) / len(acc_list)
 
-        return accuracy, acc_list
+        return accuracy, acc_list, predicts, labels
     elif metrics_type == 'editdistance':
         ed_list = [editdistance.eval(pred, targ) for pred, targ in zip(predicts, labels)]
         eds = 1.0 * sum(ed_list) / len(ed_list)
 
-        return eds, ed_list
+        return eds, ed_list, predicts, labels
 
     return -1
 
@@ -82,9 +82,13 @@ if __name__ == '__main__':
     word = end_cut(target[1], char2id, id2char)
     print("Second decode word is:", word)
 
-    metric, metric_list = performance_evaluate(pred_choice, target, voc, char2id, id2char, 'accuracy')
+    metric, metric_list, predicts, labels = performance_evaluate(pred_choice, target, voc, char2id, id2char, 'accuracy')
     print("Accuracy:", metric)
     print("Accuracy list:", metric_list)
-    metric, metric_list = performance_evaluate(pred_choice, target, voc, char2id, id2char, 'editdistance')
+    print("Predicted words:", predicts)
+    print("Labeled words:", labels)
+    metric, metric_list, predicts, labels = performance_evaluate(pred_choice, target, voc, char2id, id2char, 'editdistance')
     print("Edit distance:", metric)
     print("Edit distance list:", metric_list)
+    print("Predicted words:", predicts)
+    print("Labeled words:", labels)

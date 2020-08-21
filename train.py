@@ -4,6 +4,7 @@ THis is the main training code.
 import argparse
 import os
 import random
+import math
 import torch
 import torch.nn.parallel
 import torch.optim as optim
@@ -15,6 +16,7 @@ import pdb
 from dataset import dataset
 from dataset.dataset import dictionary_generator
 from models.sar import sar
+from utils.dataproc import performance_evaluate
 
 # main function:
 if __name__ == '__main__':
@@ -58,6 +60,8 @@ if __name__ == '__main__':
     batch_size = opt.batch
     Height = 48
     Width = 64
+    feature_height = Height // 4
+    feature_width = Width // 8
     Channel = 3
     voc, char2id, id2char = dictionary_generator()
     output_classes = len(voc)
@@ -110,8 +114,8 @@ if __name__ == '__main__':
     
     # create model
     print("Create model......")
-    model = sar(Channel, embedding_dim, output_classes, hidden_units, layers, keep_prob, seq_len, training=True)
-    
+    model = sar(Channel, feature_height, feature_width, embedding_dim, output_classes, hidden_units, layers, keep_prob, seq_len)
+
     if opt.gpu != -1 and torch.cuda.is_available() == True:
         model = torch.nn.DataParallel(model).to(device)
     else:
@@ -121,19 +125,36 @@ if __name__ == '__main__':
         model.load_state_dict(torch.load(trained_model_path))
     
     optimizer = optim.Adam(model.parameters(), lr=0.001)
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=300, gamma=0.9)
         
-    num_batch = len(train_dataset) // batch_size
+    num_batch = math.ceil(len(train_dataset) / batch_size)
     
     # train, evaluate, and save model
+    print("Training starts......")
     for epoch in range(epochs):
-        scheduler.step()
+        M_list = []
         for i, data in enumerate(train_dataloader):
             x = data[0] # [batch_size, Channel, Height, Width]
             y = data[1] # [batch_size, seq_len, output_classes] 
-            print(x.shape)
-            print(y.shape)
-    
-            #predict, att_weights = model(x,y)
+            x, y = x.to(device), y.to(device)
+            #print(x.shape, y.shape)
+            optimizer.zero_grad()
+            model = model.train()
+            predict, _, _, _ = model(x, y)
             #print("Prediction size is:", predict.shape)
             #print("Attention weight size is:", att_weights.shape)
+            loss = F.binary_cross_entropy(predict, y)
+            loss.backward()
+            optimizer.step()
+            # prediction evaluation
+            train_batch_size = predict.shape[0]
+            pred_choice = predict.max(2)[1] # [batch_size, seq_len]
+            target = y.max(2)[1] # [batch_size, seq_len]
+            metric, metric_list, predict_words, labeled_words = performance_evaluate(pred_choice.detach().cpu().numpy(), target.detach().cpu().numpy(), voc, char2id, id2char, 'accuracy')
+            M_list += metric_list
+            print('[Epoch %d: %d/%d] train loss: %f accuracy: %f' % (epoch, i, num_batch, loss.item(), metric))
+            print("predict words:", predict_words[0])
+            print("labeled words:", labeled_words[0])
+        print("Epoch {} average accuracy: {}".format(epoch, float(sum(M_list)/len(M_list))))
+
+        scheduler.step()

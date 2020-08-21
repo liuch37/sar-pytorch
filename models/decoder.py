@@ -57,7 +57,7 @@ class attention(nn.Module):
         return glimpse, attention_weights
 
 class decoder(nn.Module):
-    def __init__(self, output_classes, H, W, D=512, hidden_units=512, seq_len=40, training=True):
+    def __init__(self, output_classes, H, W, D=512, hidden_units=512, seq_len=40):
         super(decoder, self).__init__()
         '''
         output_classes: number of output classes for the one hot encoding of a word
@@ -66,15 +66,14 @@ class decoder(nn.Module):
         D: glimpse depth
         hidden_units: hidden units of encoder/decoder for LSTM
         seq_len: output sequence length T
-        training: using training mode or not
         '''
         self.linear1 = nn.Linear(output_classes, hidden_units)
         self.lstmcell1 = nn.LSTMCell(hidden_units, hidden_units)
         self.lstmcell2 = nn.LSTMCell(hidden_units, hidden_units)
         self.attention = attention(hidden_units, H, W, D)
         self.linear2 = nn.Linear(hidden_units+D, output_classes)
+        self.softmax = nn.Softmax(dim=1)
         self.seq_len = seq_len
-        self.training = training
         self.START_TOKEN = output_classes - 3 # Same like EOS TOKEN
         self.output_classes = output_classes
         self.hidden_units = hidden_units
@@ -88,16 +87,16 @@ class decoder(nn.Module):
         outputs = []
         attention_weights = []
         batch_size = hw.shape[0]
-        y_onehot = torch.FloatTensor(batch_size, self.output_classes)
+        y_onehot = torch.zeros(batch_size, self.output_classes)
         for t in range(self.seq_len + 1):
             if t == 0:
                 inputs_y = hw # size [batch, hidden_units]
                 # LSTM layer 1 initialization:
-                hx_1 = torch.FloatTensor(batch_size, self.hidden_units) # initial h0_1
-                cx_1 = torch.FloatTensor(batch_size, self.hidden_units) # initial c0_1
+                hx_1 = torch.zeros(batch_size, self.hidden_units) # initial h0_1
+                cx_1 = torch.zeros(batch_size, self.hidden_units) # initial c0_1
                 # LSTM layer 2 initialization:
-                hx_2 = torch.FloatTensor(batch_size, self.hidden_units) # initial h0_2
-                cx_2 = torch.FloatTensor(batch_size, self.hidden_units) # initial c0_2
+                hx_2 = torch.zeros(batch_size, self.hidden_units) # initial h0_2
+                cx_2 = torch.zeros(batch_size, self.hidden_units) # initial c0_2
             elif t == 1:
                 y_onehot.zero_()
                 y_onehot[:,self.START_TOKEN] = 1.0
@@ -121,6 +120,7 @@ class decoder(nn.Module):
             glimpse, att_weights = self.attention(hx_2, V) # [batch, D], [batch, 1, H, W]
             combine = torch.cat((hx_2,glimpse), dim=1) # [batch, hidden_units_decoder+D]
             out = self.linear2(combine) # [batch, output_classes]
+            out = self.softmax(out) # [batch, output_classes]
             outputs.append(out)
             attention_weights.append(att_weights)
 
@@ -165,12 +165,7 @@ if __name__ == '__main__':
     print("Attention weight size is:", attention_weights.shape)
 
     label = torch.randn(batch_size, seq_len, output_classes)
-    decoder_model_training = decoder(output_classes, Height, Width, Channel, hidden_units, seq_len, True)
-    outputs, attention_weights = decoder_model_training(hw, label, feature_map)
-    print("Output size is:", outputs.shape)
-    print("Attention_weights size is:", attention_weights.shape)
-
-    decoder_model_inference = decoder(output_classes, Height, Width, Channel, hidden_units, seq_len, False)
-    outputs, attention_weights = decoder_model_inference(hw, label, feature_map)
+    decoder_model = decoder(output_classes, Height, Width, Channel, hidden_units, seq_len)
+    outputs, attention_weights = decoder_model(hw, label, feature_map)
     print("Output size is:", outputs.shape)
     print("Attention_weights size is:", attention_weights.shape)
