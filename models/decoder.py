@@ -74,7 +74,7 @@ class decoder(nn.Module):
         self.linear2 = nn.Linear(hidden_units+D, output_classes)
         self.softmax = nn.Softmax(dim=1)
         self.seq_len = seq_len
-        self.START_TOKEN = output_classes - 3 # Same like EOS TOKEN
+        self.START_TOKEN = output_classes - 3 # Same as END TOKEN
         self.output_classes = output_classes
         self.hidden_units = hidden_units
 
