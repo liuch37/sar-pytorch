@@ -69,8 +69,8 @@ class decoder(nn.Module):
         seq_len: output sequence length T
         '''
         self.linear1 = nn.Linear(output_classes, hidden_units)
-        self.lstmcell1 = nn.LSTMCell(hidden_units, hidden_units)
-        self.lstmcell2 = nn.LSTMCell(hidden_units, hidden_units)
+        self.lstmcell1 = [nn.LSTMCell(hidden_units, hidden_units) for i in range(seq_len+1)]
+        self.lstmcell2 = [nn.LSTMCell(hidden_units, hidden_units) for i in range(seq_len+1)]
         self.attention = attention(hidden_units, H, W, D)
         self.linear2 = nn.Linear(hidden_units+D, output_classes)
         self.softmax = nn.Softmax(dim=1)
@@ -116,8 +116,8 @@ class decoder(nn.Module):
                 inputs_y = self.linear1(inputs_y) # [batch, hidden_units_encoder]
 
             # LSTM cells combined with attention and fusion layer
-            hx_1, cx_1 = self.lstmcell1(inputs_y, (hx_1,cx_1))
-            hx_2, cx_2 = self.lstmcell2(hx_1, (hx_2,cx_2))
+            hx_1, cx_1 = self.lstmcell1[t](inputs_y, (hx_1,cx_1))
+            hx_2, cx_2 = self.lstmcell2[t](hx_1, (hx_2,cx_2))
             glimpse, att_weights = self.attention(hx_2, V) # [batch, D], [batch, 1, H, W]
             combine = torch.cat((hx_2,glimpse), dim=1) # [batch, hidden_units_decoder+D]
             out = self.linear2(combine) # [batch, output_classes]
