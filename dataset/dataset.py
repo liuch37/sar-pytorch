@@ -112,9 +112,34 @@ class svt_dataset_builder(data.Dataset):
     def __len__(self):
         return len(self.dataset)
 
+class test_dataset_builder(data.Dataset):
+    def __init__(self, height, width, img_path):
+        '''
+        height: input height to model
+        width: input width to model
+        img_path: path with images
+        '''
+        self.height = height
+        self.width = width
+        self.img_path = img_path
+        self.dataset = [image_name for image_name in os.listdir(self.img_path)]
+
+    def __getitem__(self, index):
+        IMG = cv2.imread(os.path.join(self.img_path, self.dataset[index]))
+        # image processing:
+        IMG = cv2.resize(IMG, (self.width, self.height)) # resize
+        IMG = (IMG - 127.5)/127.5 # normalization to [-1,1]
+        IMG = torch.FloatTensor(IMG) # convert to tensor [H, W, C]
+        IMG = IMG.permute(2,0,1) # [C, H, W]
+
+        return IMG, self.dataset[index]
+
+    def __len__(self):
+        return len(self.dataset)
+
 # unit test
 if __name__ == '__main__':
-    
+
     img_path = '../svt/img/'
     train_xml_path = '../svt/train.xml'
     test_xml_path = '../svt/test.xml'

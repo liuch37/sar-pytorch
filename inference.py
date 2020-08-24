@@ -16,12 +16,15 @@ import pdb
 from dataset import dataset
 from dataset.dataset import dictionary_generator
 from models.sar import sar
+from utils.dataproc import end_cut
 
 # main function:
 if __name__ == '__main__':
     freeze_support()
     parser = argparse.ArgumentParser()
     parser.add_argument('--batch', type=int, default=32, help='batch size')
+    parser.add_argument(
+        '--worker', type=int, default=4, help='number of data loading workers')
     parser.add_argument('--input', type=str, default='', help='input folder')
     parser.add_argument('--output', type=str, default='predict.txt', help='output file name')
     parser.add_argument('--model', type=str, default='', help='model path')
@@ -57,11 +60,21 @@ if __name__ == '__main__':
     layers = 2
     keep_prob = 1.0
     seq_len = 40
+    batch_size = opt.batch
     output_path = opt.output
     trained_model_path = opt.model
     input_path = opt.input
+    worker = opt.worker
 
-    # load image data
+    # load test data
+    test_dataset = dataset.test_dataset_builder(Height, Width, input_path)
+
+    # make dataloader
+    test_dataloader = torch.utils.data.DataLoader(
+                    test_dataset,
+                    batch_size=batch_size,
+                    shuffle=False,
+                    num_workers=int(worker))
 
     # load model
     print("Create model......")
@@ -82,16 +95,24 @@ if __name__ == '__main__':
         print("Error: Empty --input!")
         exit(1)
 
+    if os.path.isfile(output_path):
+        os.remove(output_path)
+
     # run inference
     print("Inference starts......")
-    '''
     for i, data in enumerate(test_dataloader):
+        print("processing for batch index:", i)
         x = data[0] # [batch_size, Channel, Height, Width]
-        y = data[1] # [batch_size, seq_len, output_classes]
-        x, y = x.to(device), y.to(device)
+        image_name = data[1] # [batch_size, image_name]
+        x = x.to(device)
         model = model.eval()
-        predict, _, _, _ = model(x, y)
-        # prediction evaluation
+        predict, _, _, _ = model(x, 0)
+        batch_size_current = predict.shape[0]
         pred_choice = predict.max(2)[1] # [batch_size, seq_len]
-        target = y.max(2)[1] # [batch_size, seq_len]
-    '''
+        with open(output_path, "a") as f:
+            for idx in range(batch_size_current):
+                # prediction evaluation
+                predict_word = end_cut(pred_choice[idx], char2id, id2char)
+                # write to output path
+                f.write("{} {}\n".format(image_name[idx], predict_word))
+    print("Inference done!")

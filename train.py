@@ -159,7 +159,6 @@ if __name__ == '__main__':
             loss.backward()
             optimizer.step()
             # prediction evaluation
-            train_batch_size = predict.shape[0]
             pred_choice = predict.max(2)[1] # [batch_size, seq_len]
             target = y.max(2)[1] # [batch_size, seq_len]
             metric, metric_list, predict_words, labeled_words = performance_evaluate(pred_choice.detach().cpu().numpy(), target.detach().cpu().numpy(), voc, char2id, id2char, eval_metric)
@@ -183,7 +182,6 @@ if __name__ == '__main__':
                 model = model.eval()
                 predict, _, _, _ = model(x, y)
                 # prediction evaluation
-                train_batch_size = predict.shape[0]
                 pred_choice = predict.max(2)[1] # [batch_size, seq_len]
                 target = y.max(2)[1] # [batch_size, seq_len]
                 metric, metric_list, predict_words, labeled_words = performance_evaluate(pred_choice.detach().cpu().numpy(), target.detach().cpu().numpy(), voc, char2id, id2char, eval_metric)
