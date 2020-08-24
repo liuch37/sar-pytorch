@@ -156,5 +156,6 @@ if __name__ == '__main__':
         print(item[0].shape,item[1].shape)
 
     test_dataset = svt_dataset_builder(height, width, seq_len, img_path, test_xml_path)
+
     for i, item in enumerate(test_dataset):
         print(item[0].shape,item[1].shape)
