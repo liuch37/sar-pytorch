@@ -135,7 +135,7 @@ if __name__ == '__main__':
     # train, evaluate, and save model
     print("Training starts......")
     if eval_metric == 'accuracy':
-        best_acc = 0.0
+        best_acc = float('-inf')
     elif eval_metric == 'editdistance':
         best_acc = float('inf')
     else:
