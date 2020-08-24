@@ -80,6 +80,9 @@ class decoder(nn.Module):
         self.hidden_units = hidden_units
         self.device = device
 
+        self.lstmcell1 = torch.nn.ModuleList(self.lstmcell1)
+        self.lstmcell2 = torch.nn.ModuleList(self.lstmcell2)
+
     def forward(self,hw,y,V):
         '''
         hw: embedded feature from encoder [batch, hidden_units]
