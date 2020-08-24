@@ -7,19 +7,20 @@ import torch.nn as nn
 __all__ = ['encoder']
 
 class encoder(nn.Module):
-    def __init__(self, H, C, hidden_units=512, layers=2, keep_prob=1.0):
+    def __init__(self, H, C, hidden_units=512, layers=2, keep_prob=1.0, device='cpu'):
         super(encoder, self).__init__()
         self.maxpool = nn.MaxPool2d(kernel_size=(H,1), stride=1)
         self.lstm = nn.LSTM(input_size=C, hidden_size=hidden_units, num_layers=layers, batch_first=True, dropout=keep_prob)
         self.layers = layers
         self.hidden_units = hidden_units
+        self.device = device
 
     def forward(self, x):
         # x is feature map in [batch, C, H, W]
         # Initialize hidden state with zeros
-        h_0 = torch.zeros(self.layers*1, x.size(0), self.hidden_units)
+        h_0 = torch.zeros(self.layers*1, x.size(0), self.hidden_units).to(self.device)
         # Initialize cell state
-        c_0 = torch.zeros(self.layers*1, x.size(0), self.hidden_units)
+        c_0 = torch.zeros(self.layers*1, x.size(0), self.hidden_units).to(self.device)
         x = self.maxpool(x) # [batch, C, 1, W]
         x = torch.squeeze(x) # [batch, C, W]
         if len(x.size()) == 2: # [C, W]

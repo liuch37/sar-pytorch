@@ -10,7 +10,7 @@ from .decoder import decoder
 __all__ = ['sar']
 
 class sar(nn.Module):
-    def __init__(self, channel, feature_height, feature_width, embedding_dim, output_classes, hidden_units=512, layers=2, keep_prob=1.0, seq_len=40):
+    def __init__(self, channel, feature_height, feature_width, embedding_dim, output_classes, hidden_units=512, layers=2, keep_prob=1.0, seq_len=40, device='cpu'):
         super(sar, self).__init__()
         '''
         channel: channel of input image
@@ -23,14 +23,15 @@ class sar(nn.Module):
         seq_len: decoding sequence length
         '''
         self.backbone = backbone(channel)
-        self.encoder_model = encoder(feature_height, 512, hidden_units, layers, keep_prob)
-        self.decoder_model = decoder(output_classes, feature_height, feature_width, 512, hidden_units, seq_len)
+        self.encoder_model = encoder(feature_height, 512, hidden_units, layers, keep_prob, device)
+        self.decoder_model = decoder(output_classes, feature_height, feature_width, 512, hidden_units, seq_len, device)
         self.embedding_dim = embedding_dim
         self.output_classes = output_classes
         self.hidden_units = hidden_units
         self.layers = layers
         self.keep_prob = keep_prob
         self.seq_len = seq_len
+        self.device = device
 
     def forward(self,x,y):
         '''

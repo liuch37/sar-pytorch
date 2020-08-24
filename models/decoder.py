@@ -58,7 +58,7 @@ class attention(nn.Module):
         return glimpse, attention_weights
 
 class decoder(nn.Module):
-    def __init__(self, output_classes, H, W, D=512, hidden_units=512, seq_len=40):
+    def __init__(self, output_classes, H, W, D=512, hidden_units=512, seq_len=40, device='cpu'):
         super(decoder, self).__init__()
         '''
         output_classes: number of output classes for the one hot encoding of a word
@@ -78,6 +78,7 @@ class decoder(nn.Module):
         self.START_TOKEN = output_classes - 3 # Same as END TOKEN
         self.output_classes = output_classes
         self.hidden_units = hidden_units
+        self.device = device
 
     def forward(self,hw,y,V):
         '''
@@ -88,16 +89,16 @@ class decoder(nn.Module):
         outputs = []
         attention_weights = []
         batch_size = hw.shape[0]
-        y_onehot = torch.zeros(batch_size, self.output_classes)
+        y_onehot = torch.zeros(batch_size, self.output_classes).to(self.device)
         for t in range(self.seq_len + 1):
             if t == 0:
                 inputs_y = hw # size [batch, hidden_units]
                 # LSTM layer 1 initialization:
-                hx_1 = torch.zeros(batch_size, self.hidden_units) # initial h0_1
-                cx_1 = torch.zeros(batch_size, self.hidden_units) # initial c0_1
+                hx_1 = torch.zeros(batch_size, self.hidden_units).to(self.device) # initial h0_1
+                cx_1 = torch.zeros(batch_size, self.hidden_units).to(self.device) # initial c0_1
                 # LSTM layer 2 initialization:
-                hx_2 = torch.zeros(batch_size, self.hidden_units) # initial h0_2
-                cx_2 = torch.zeros(batch_size, self.hidden_units) # initial c0_2
+                hx_2 = torch.zeros(batch_size, self.hidden_units).to(self.device) # initial h0_2
+                cx_2 = torch.zeros(batch_size, self.hidden_units).to(self.device) # initial c0_2
             elif t == 1:
                 y_onehot.zero_()
                 y_onehot[:,self.START_TOKEN] = 1.0

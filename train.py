@@ -116,7 +116,7 @@ if __name__ == '__main__':
     
     # create model
     print("Create model......")
-    model = sar(Channel, feature_height, feature_width, embedding_dim, output_classes, hidden_units, layers, keep_prob, seq_len)
+    model = sar(Channel, feature_height, feature_width, embedding_dim, output_classes, hidden_units, layers, keep_prob, seq_len, device)
 
     if opt.gpu != -1 and torch.cuda.is_available() == True:
         model = torch.nn.DataParallel(model).to(device)
