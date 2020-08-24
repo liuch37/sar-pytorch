@@ -10,7 +10,7 @@ Implementation of Show, Attend and Read: A Simple and Strong Baseline for Irregu
 - [x] Integrated model
 - [x] Data processing
 - [x] Training pipeline
-- [ ] Inference pipeline
+- [x] Inference pipeline
 
 ## Supported Dataset
 
