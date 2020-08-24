@@ -103,17 +103,17 @@ if __name__ == '__main__':
                     batch_size=batch_size,
                     shuffle=True,
                     num_workers=int(worker))
-        
+
     print("Length of train dataset is:", len(train_dataset))
     print("Length of test dataset is:", len(test_dataset))
     print("Number of output classes is:", train_dataset.output_classes)
-    
+
     # make model output folder
     try:
         os.makedirs(output_path)
     except OSError:
         pass
-    
+
     # create model
     print("Create model......")
     model = sar(Channel, feature_height, feature_width, embedding_dim, output_classes, hidden_units, layers, keep_prob, seq_len, device)
@@ -122,7 +122,7 @@ if __name__ == '__main__':
         model = torch.nn.DataParallel(model).to(device)
     else:
         model.to(device)
-    
+
     if trained_model_path != '':
         model.load_state_dict(torch.load(trained_model_path))
 
@@ -131,7 +131,7 @@ if __name__ == '__main__':
     scheduler = optim.lr_scheduler.MultiplicativeLR(optimizer, lmbda)
 
     num_batch = math.ceil(len(train_dataset) / batch_size)
-    
+
     # train, evaluate, and save model
     print("Training starts......")
     if eval_metric == 'accuracy':

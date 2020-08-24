@@ -91,6 +91,15 @@ class svt_dataset_builder(data.Dataset):
         img_name, bdb, label = self.dataset[index]
         IMG = cv2.imread(os.path.join(self.total_img_path,img_name))
         x, y, w, h = bdb
+        (H, W, _) = IMG.shape
+        x = max(0, x)
+        x = min(W-1, x)
+        y = max(0, y)
+        y = min(H-1, y)
+        w = max(0, w)
+        w = min(W, w)
+        h = max(0, h)
+        h = min(H-1, h)
         # image processing:
         IMG = IMG[y:y+h,x:x+w,:] # crop
         IMG = cv2.resize(IMG, (self.width, self.height)) # resize
@@ -159,3 +168,7 @@ if __name__ == '__main__':
 
     for i, item in enumerate(test_dataset):
         print(item[0].shape,item[1].shape)
+        IMG = item[0].permute(1,2,0)
+        IMG = IMG.detach().numpy()
+        IMG = (IMG*127.5+127.5).astype(np.uint8)
+        cv2.imwrite('../test/'+str(i)+'.jpg', IMG)
