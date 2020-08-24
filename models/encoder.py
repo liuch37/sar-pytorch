@@ -16,6 +16,7 @@ class encoder(nn.Module):
         self.device = device
 
     def forward(self, x):
+        self.lstm.flatten_parameters()
         # x is feature map in [batch, C, H, W]
         # Initialize hidden state with zeros
         h_0 = torch.zeros(self.layers*1, x.size(0), self.hidden_units).to(self.device)
