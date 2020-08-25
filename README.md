@@ -19,6 +19,20 @@ Implementation of Show, Attend and Read: A Simple and Strong Baseline for Irregu
 - [ ] Syn90k: https://www.robots.ox.ac.uk/~vgg/data/text/
 - [ ] SynthText: https://www.robots.ox.ac.uk/~vgg/data/scenetext/
 
+## Command
+
+### Training
+
+``
+python train.py --batch 32 --epoch 20000 --dataset ./svt --dataset_type svt --gpu True
+``
+
+### Inference
+
+``
+python inference.py --batch 32 --input input_folder --model model_path --gpu True
+``
+
 ## Test Performance (w/o lexicon)
 
 | Dataset      | Accuracy |
