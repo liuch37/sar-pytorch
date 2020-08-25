@@ -19,6 +19,15 @@ Implementation of Show, Attend and Read: A Simple and Strong Baseline for Irregu
 - [ ] Syn90k: https://www.robots.ox.ac.uk/~vgg/data/text/
 - [ ] SynthText: https://www.robots.ox.ac.uk/~vgg/data/scenetext/
 
+## Performance
+
+| Dataset      | Accuracy |
+| ----------- | ----------- |
+| SVT      | TBD       |
+| IIIT5K   | TBD        |
+| Syn90k   | TBD        |
+| SynthText   | TBD        |
+
 ## Source
 
 [1] Original paper: https://arxiv.org/abs/1811.00751
