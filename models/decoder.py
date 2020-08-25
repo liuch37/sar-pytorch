@@ -73,7 +73,7 @@ class decoder(nn.Module):
         self.lstmcell2 = [nn.LSTMCell(hidden_units, hidden_units) for i in range(seq_len+1)]
         self.attention = attention(hidden_units, H, W, D)
         self.linear2 = nn.Linear(hidden_units+D, output_classes)
-        self.softmax = nn.Softmax(dim=1)
+        self.softmax = nn.LogSoftmax(dim=1)
         self.seq_len = seq_len
         self.START_TOKEN = output_classes - 3 # Same as END TOKEN
         self.output_classes = output_classes
