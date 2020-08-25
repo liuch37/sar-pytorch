@@ -42,6 +42,8 @@ python inference.py --batch 32 --input input_folder --model model_path --gpu Tru
 | Syn90k   | TBD        |
 | SynthText   | TBD        |
 
+## Test Results
+
 ## Source
 
 [1] Original paper: https://arxiv.org/abs/1811.00751
