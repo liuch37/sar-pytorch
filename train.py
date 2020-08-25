@@ -1,8 +1,9 @@
 '''
 THis is the main training code.
 '''
-import argparse
 import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "0" # set GPU id at the very begining
+import argparse
 import random
 import math
 import torch
@@ -32,7 +33,7 @@ if __name__ == '__main__':
     parser.add_argument('--model', type=str, default='', help='model path')
     parser.add_argument('--dataset', type=str, required=True, help="dataset path")
     parser.add_argument('--dataset_type', type=str, default='svt', help="dataset type")
-    parser.add_argument('--gpu', nargs='+', type=int, default=-1, help="GPU indices")
+    parser.add_argument('--gpu', type=bool, default=False, help="GPU being used or not")
     parser.add_argument('--metric', type=str, default='accuracy', help="evaluation metric - accuracy|editdistance")
     
     opt = parser.parse_args()
@@ -44,15 +45,13 @@ if __name__ == '__main__':
     torch.manual_seed(opt.manualSeed)
     
     # turn on GPU for models:
-    if opt.gpu == -1:
+    if opt.gpu == False:
         device = torch.device("cpu")
         print("CPU being used!")
     else:
-        if torch.cuda.is_available() == True:
-            gpu_string = ','.join([str(item) for item in opt.gpu])
-            os.environ['CUDA_VISIBLE_DEVICES'] = gpu_string
+        if torch.cuda.is_available() == True and opt.gpu == True:
             device = torch.device("cuda")
-            print("GPU {} being used!".format(gpu_string))
+            print("GPU being used!")
         else:
             device = torch.device("cpu")
             print("CPU being used!")
