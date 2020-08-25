@@ -126,8 +126,8 @@ if __name__ == '__main__':
         model.load_state_dict(torch.load(trained_model_path))
 
     optimizer = optim.Adam(model.parameters(), lr=0.001)
-    lmbda = lambda epoch: 0.9 if epoch < 300 else 1.0
-    scheduler = optim.lr_scheduler.MultiplicativeLR(optimizer, lmbda)
+    lmbda = lambda epoch: 0.9**(epoch // 300) if epoch < 13200 else 10**(-2)
+    scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lmbda)
 
     num_batch = math.ceil(len(train_dataset) / batch_size)
 
