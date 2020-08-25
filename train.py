@@ -152,21 +152,23 @@ if __name__ == '__main__':
             optimizer.zero_grad()
             model = model.train()
             predict, _, _, _ = model(x, y)
+            target = y.max(2)[1] # [batch_size, seq_len]
             #print("Prediction size is:", predict.shape)
             #print("Attention weight size is:", att_weights.shape)
-            loss = F.binary_cross_entropy(predict, y)
+            predict_reshape = predict.permute(0,2,1) # [batch_size, output_classes, seq_len]
+            loss = F.nll_loss(predict_reshape, target)
             loss.backward()
             optimizer.step()
             # prediction evaluation
             pred_choice = predict.max(2)[1] # [batch_size, seq_len]
-            target = y.max(2)[1] # [batch_size, seq_len]
             metric, metric_list, predict_words, labeled_words = performance_evaluate(pred_choice.detach().cpu().numpy(), target.detach().cpu().numpy(), voc, char2id, id2char, eval_metric)
             M_list += metric_list
             print('[Epoch %d: %d/%d] train loss: %f accuracy: %f' % (epoch, i, num_batch, loss.item(), metric))
             #print("predict prob:", predict[0][0])
             #print("predict words:", predict_words[0])
             #print("labeled words:", labeled_words[0])
-        print("Epoch {} average train accuracy: {}".format(epoch, float(sum(M_list)/len(M_list))))
+        train_acc = float(sum(M_list)/len(M_list))
+        print("Epoch {} average train accuracy: {}".format(epoch, train_acc))
 
         scheduler.step()
 
@@ -185,15 +187,17 @@ if __name__ == '__main__':
                 target = y.max(2)[1] # [batch_size, seq_len]
                 metric, metric_list, predict_words, labeled_words = performance_evaluate(pred_choice.detach().cpu().numpy(), target.detach().cpu().numpy(), voc, char2id, id2char, eval_metric)
                 M_list += metric_list
-            acc = float(sum(M_list)/len(M_list))
-            print("Epoch {} average test accuracy: {}".format(epoch, acc))
+            test_acc = float(sum(M_list)/len(M_list))
+            print("Epoch {} average test accuracy: {}".format(epoch, test_acc))
+            with open(os.path.join(output_path,'statistics.txt'), 'a') as f:
+                f.write("{} {}\n".format(train_acc, test_acc))
             if eval_metric == 'accuracy':
-                if acc > best_acc:
-                    print("Save current best model with accuracy:", acc)
-                    best_acc = acc
-                    torch.save(model.state_dict(), '%s/model_%d_%.4f.pth' % (output_path, epoch, acc))
+                if test_acc > best_acc:
+                    print("Save current best model with accuracy:", test_acc)
+                    best_acc = test_acc
+                    torch.save(model.state_dict(), '%s/model_best.pth' % (output_path))
             elif eval_metric == 'editdistance':
-                if acc < best_acc:
-                    print("Save current best model with accuracy:", acc)
-                    best_acc = acc
-                    torch.save(model.state_dict(), '%s/model_%d_%.4f.pth' % (output_path, epoch, acc))
+                if test_acc < best_acc:
+                    print("Save current best model with accuracy:", test_acc)
+                    best_acc = test_acc
+                    torch.save(model.state_dict(), '%s/model_best.pth' % (output_path))
