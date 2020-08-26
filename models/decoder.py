@@ -68,24 +68,20 @@ class decoder(nn.Module):
         hidden_units: hidden units of encoder/decoder for LSTM
         seq_len: output sequence length T
         '''
-        self.linear1 = [nn.Linear(output_classes, hidden_units) for i in range(seq_len)]
+        self.linear1 = nn.Linear(output_classes, hidden_units)
         self.lstmcell1 = [nn.LSTMCell(hidden_units, hidden_units) for i in range(seq_len+1)]
         self.lstmcell2 = [nn.LSTMCell(hidden_units, hidden_units) for i in range(seq_len+1)]
-        self.attention = [attention(hidden_units, H, W, D) for i in range(seq_len)]
-        self.linear2 = [nn.Linear(hidden_units+D, output_classes) for i in range(seq_len)]
-        self.softmax = [nn.LogSoftmax(dim=1) for i in range(seq_len)]
+        self.attention = attention(hidden_units, H, W, D)
+        self.linear2 = nn.Linear(hidden_units+D, output_classes)
+        self.softmax = nn.LogSoftmax(dim=1)
         self.seq_len = seq_len
         self.START_TOKEN = output_classes - 3 # Same as END TOKEN
         self.output_classes = output_classes
         self.hidden_units = hidden_units
         self.device = device
 
-        self.linear1 = torch.nn.ModuleList(self.linear1)
         self.lstmcell1 = torch.nn.ModuleList(self.lstmcell1)
         self.lstmcell2 = torch.nn.ModuleList(self.lstmcell2)
-        self.attention = torch.nn.ModuleList(self.attention)
-        self.linear2 = torch.nn.ModuleList(self.linear2)
-        self.softmax = torch.nn.ModuleList(self.softmax)
 
     def forward(self,hw,y,V):
         '''
@@ -110,7 +106,7 @@ class decoder(nn.Module):
                 y_onehot.zero_()
                 y_onehot[:,self.START_TOKEN] = 1.0
                 inputs_y = y_onehot
-                inputs_y = self.linear1[t-1](inputs_y) # [batch, hidden_units]
+                inputs_y = self.linear1(inputs_y) # [batch, hidden_units]
             else:
                 if self.training:
                     inputs_y = y[:,t-2,:] # [batch, output_classes]
@@ -121,15 +117,15 @@ class decoder(nn.Module):
                     y_onehot.zero_()
                     inputs_y = y_onehot.scatter_(1, index, 1) # [batch, output_classes]
 
-                inputs_y = self.linear1[t-1](inputs_y) # [batch, hidden_units_encoder]
+                inputs_y = self.linear1(inputs_y) # [batch, hidden_units_encoder]
 
             # LSTM cells combined with attention and fusion layer
             hx_1, cx_1 = self.lstmcell1[t](inputs_y, (hx_1,cx_1))
             hx_2, cx_2 = self.lstmcell2[t](hx_1, (hx_2,cx_2))
-            glimpse, att_weights = self.attention[t-1](hx_2, V) # [batch, D], [batch, 1, H, W]
+            glimpse, att_weights = self.attention(hx_2, V) # [batch, D], [batch, 1, H, W]
             combine = torch.cat((hx_2,glimpse), dim=1) # [batch, hidden_units_decoder+D]
-            out = self.linear2[t-1](combine) # [batch, output_classes]
-            out = self.softmax[t-1](out) # [batch, output_classes]
+            out = self.linear2(combine) # [batch, output_classes]
+            out = self.softmax(out) # [batch, output_classes]
             outputs.append(out)
             attention_weights.append(att_weights)
 
