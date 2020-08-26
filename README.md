@@ -33,16 +33,7 @@ python train.py --batch 32 --epoch 20000 --dataset ./svt --dataset_type svt --gp
 python inference.py --batch 32 --input input_folder --model model_path --gpu True
 ``
 
-## Test Performance (w/o lexicon and augmentation)
-
-| Dataset      | Accuracy |
-| ----------- | ----------- |
-| SVT      | TBD       |
-| IIIT5K   | TBD        |
-| Syn90k   | TBD        |
-| SynthText   | TBD        |
-
-## Test Results
+## Results
 
 ## Source
 
