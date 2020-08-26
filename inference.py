@@ -18,6 +18,7 @@ from dataset import dataset
 from dataset.dataset import dictionary_generator
 from models.sar import sar
 from utils.dataproc import end_cut
+from utils.attention_map import attention_map
 
 # main function:
 if __name__ == '__main__':
@@ -105,13 +106,15 @@ if __name__ == '__main__':
         image_name = data[1] # [batch_size, image_name]
         x = x.to(device)
         model = model.eval()
-        predict, _, _, _ = model(x, 0)
+        predict, att_weights, _, _ = model(x, 0)
         batch_size_current = predict.shape[0]
         pred_choice = predict.max(2)[1] # [batch_size, seq_len]
         with open(output_path, "a") as f:
             for idx in range(batch_size_current):
                 # prediction evaluation
                 predict_word = end_cut(pred_choice[idx], char2id, id2char)
+                # generate attention heatmap
+                heatmaps, overlayed_images = attention_map(predict_word, x[idx], att_weights[idx,:,:,:,:])
                 # write to output path
                 f.write("{} {}\n".format(image_name[idx], predict_word))
     print("Inference done!")
