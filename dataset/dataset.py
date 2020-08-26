@@ -34,10 +34,7 @@ def svt_xml_extractor(img_path, label_path):
     img_path: path for all image folder
     label_path: xml label path file
     Output:
-    dict_img: {image_name: [imgs, labels, lexicon]}
-    imgs: list of numpy cropped images with bounding box
-    labels: list of string labels
-    lexicon: lexicon for this image
+    dict_img: [image_name, bounding box, labels, lexicon]]
     '''
     # create element tree object
     tree = ET.parse(label_path)
@@ -63,6 +60,17 @@ def svt_xml_extractor(img_path, label_path):
             dict_img.append([name, bdb,labels,lexicon])
 
     return dict_img
+
+def iiit5k_mat_extractor(img_path, label_path):
+    '''
+    This code is to extract mat labels from IIIT5k dataset
+    Input:
+    img_path: path for all image folder
+    label_path: mat label path file
+    Output:
+    dict_img: [image_name, labels, lexicon]]
+    '''
+    pass
 
 class svt_dataset_builder(data.Dataset):
     def __init__(self, height, width, seq_len, total_img_path, xml_path):
@@ -117,6 +125,31 @@ class svt_dataset_builder(data.Dataset):
         y_onehot = np.eye(self.output_classes)[y_true] # [seq_len, output_classes]
 
         return IMG, torch.FloatTensor(y_onehot)
+
+    def __len__(self):
+        return len(self.dataset)
+
+class iiit5k_dataset_builder(data.Dataset):
+    def __init__(self, height, width, seq_len, total_img_path, annotation_path):
+        '''
+        height: input height to model
+        width: input width to model
+        total_img_path: path with all images
+        annotation_path: mat labeling file
+        seq_len: sequence length
+        '''
+        self.total_img_path = total_img_path
+        self.height = height
+        self.width = width
+        self.seq_len = seq_len
+        self.dictionary = iiit5k_mat_extractor(total_img_path, annotation_path)
+        self.total_img_name = os.listdir(total_img_path)
+        self.dataset = []
+        self.voc, self.char2id, _ = dictionary_generator()
+        self.output_classes = len(self.voc)
+
+    def __getitem__(self, index):
+        pass
 
     def __len__(self):
         return len(self.dataset)
