@@ -100,7 +100,7 @@ if __name__ == '__main__':
     test_dataloader = torch.utils.data.DataLoader(
                     test_dataset,
                     batch_size=batch_size,
-                    shuffle=False,
+                    shuffle=True,
                     num_workers=int(worker))
 
     print("Length of train dataset is:", len(train_dataset))
