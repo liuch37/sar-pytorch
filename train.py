@@ -100,7 +100,7 @@ if __name__ == '__main__':
     test_dataloader = torch.utils.data.DataLoader(
                     test_dataset,
                     batch_size=batch_size,
-                    shuffle=True,
+                    shuffle=False,
                     num_workers=int(worker))
 
     print("Length of train dataset is:", len(train_dataset))
@@ -188,6 +188,8 @@ if __name__ == '__main__':
                 metric, metric_list, predict_words, labeled_words = performance_evaluate(pred_choice.detach().cpu().numpy(), target.detach().cpu().numpy(), voc, char2id, id2char, eval_metric)
                 M_list += metric_list
             test_acc = float(sum(M_list)/len(M_list))
+            #print("Test predict words:", predict_words[0])
+            #print("Test labeled words:", labeled_words[0])
             print("Epoch {} average test accuracy: {}".format(epoch, test_acc))
             with open(os.path.join(output_path,'statistics.txt'), 'a') as f:
                 f.write("{} {}\n".format(train_acc, test_acc))
