@@ -80,16 +80,12 @@ if __name__ == '__main__':
     print("Create model......")
     model = sar(Channel, feature_height, feature_width, embedding_dim, output_classes, hidden_units, layers, keep_prob, seq_len, device)
 
-    if opt.gpu != -1 and torch.cuda.is_available() == True:
+    if opt.gpu == True and torch.cuda.is_available() == True:
         model = torch.nn.DataParallel(model).to(device)
     else:
         model.to(device)
-    
-    if trained_model_path != '':
-        model.load_state_dict(torch.load(trained_model_path))
-    else:
-        print("Error: Empty --model path!")
-        exit(1)
+
+    model.load_state_dict(torch.load(trained_model_path, map_location=device), strict=False)
 
     if input_path == '':
         print("Error: Empty --input!")
@@ -112,7 +108,7 @@ if __name__ == '__main__':
         with open(output_path, "a") as f:
             for idx in range(batch_size_current):
                 # prediction evaluation
-                predict_word = end_cut(pred_choice[idx], char2id, id2char)
+                predict_word = end_cut(pred_choice[idx].detach().cpu().numpy(), char2id, id2char)
                 # generate attention heatmap
                 heatmaps, overlayed_images = attention_map(predict_word, x[idx], att_weights[idx,:,:,:,:])
                 # write to output path

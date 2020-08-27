@@ -244,7 +244,7 @@ if __name__ == '__main__':
 
     train_dataset_iiit5k = iiit5k_dataset_builder(height, width, seq_len, img_path_iiit, annotation_path_iiit)
 
-    for i, item in enumerate(test_dataset):
+    for i, item in enumerate(train_dataset):
         print(item[0].shape,item[1].shape)
         IMG = item[0].permute(1,2,0)
         IMG = IMG.detach().numpy()
