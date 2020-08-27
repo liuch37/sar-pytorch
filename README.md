@@ -15,7 +15,7 @@ Implementation of Show, Attend and Read: A Simple and Strong Baseline for Irregu
 ## Supported Dataset
 
 - [x] Street View Text: http://vision.ucsd.edu/~kai/svt/
-- [ ] IIIT5K: https://cvit.iiit.ac.in/research/projects/cvit-projects/the-iiit-5k-word-dataset
+- [x] IIIT5K: https://cvit.iiit.ac.in/research/projects/cvit-projects/the-iiit-5k-word-dataset
 - [ ] Syn90k: https://www.robots.ox.ac.uk/~vgg/data/text/
 - [ ] SynthText: https://www.robots.ox.ac.uk/~vgg/data/scenetext/
 
@@ -24,7 +24,7 @@ Implementation of Show, Attend and Read: A Simple and Strong Baseline for Irregu
 ### Training
 
 ``
-python train.py --batch 32 --epoch 20000 --dataset ./svt --dataset_type svt --gpu True
+python train.py --batch 32 --epoch 5000 --dataset ./svt --dataset_type svt --gpu True
 ``
 
 ### Inference
