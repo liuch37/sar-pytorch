@@ -42,7 +42,7 @@ if __name__ == '__main__':
     else:
         if torch.cuda.is_available() == True and opt.gpu == True:
             device = torch.device("cuda")
-            print("GPU being used!".format(gpu_string))
+            print("GPU being used!")
         else:
             device = torch.device("cpu")
             print("CPU being used!")
