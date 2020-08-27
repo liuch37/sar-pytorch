@@ -80,9 +80,12 @@ if __name__ == '__main__':
     print("Create model......")
     model = sar(Channel, feature_height, feature_width, embedding_dim, output_classes, hidden_units, layers, keep_prob, seq_len, device)
 
-    model = torch.nn.DataParallel(model).to(device)
-
-    model.load_state_dict(torch.load(trained_model_path, map_location=lambda storage, loc: storage), strict=False)
+    if torch.cuda.is_available() == True and opt.gpu == True:
+        model.load_state_dict(torch.load(trained_model_path, map_location=lambda storage, loc: storage), strict=False)
+        model = torch.nn.DataParallel(model).to(device)
+    else:
+        model.load_state_dict(torch.load(trained_model_path, map_location=lambda storage, loc: storage), strict=False)
+        model = model.to(device)
 
     if input_path == '':
         print("Error: Empty --input!")

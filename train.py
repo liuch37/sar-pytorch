@@ -117,13 +117,17 @@ if __name__ == '__main__':
     print("Create model......")
     model = sar(Channel, feature_height, feature_width, embedding_dim, output_classes, hidden_units, layers, keep_prob, seq_len, device)
 
-    if torch.cuda.is_available() == True and opt.gpu == True:
-        model = torch.nn.DataParallel(model).to(device)
-    else:
-        model = model.to(device)
-
     if trained_model_path != '':
-        model.load_state_dict(torch.load(trained_model_path, map_location=lambda storage, loc: storage), strict=False)
+        if torch.cuda.is_available() == True and opt.gpu == True:
+            model.load_state_dict(torch.load(trained_model_path, map_location=lambda storage, loc: storage), strict=False)
+            model = torch.nn.DataParallel(model).to(device)
+        else:
+            model.load_state_dict(torch.load(trained_model_path, map_location=lambda storage, loc: storage), strict=False)
+    else:
+        if torch.cuda.is_available() == True and opt.gpu == True:
+            model = torch.nn.DataParallel(model).to(device)
+        else:
+            model = model.to(device)
 
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     lmbda = lambda epoch: 0.9**(epoch // 300) if epoch < 13200 else 10**(-2)
@@ -197,9 +201,15 @@ if __name__ == '__main__':
                 if test_acc > best_acc:
                     print("Save current best model with accuracy:", test_acc)
                     best_acc = test_acc
-                    torch.save(model.state_dict(), '%s/model_best.pth' % (output_path))
+                    if torch.cuda.is_available() == True and opt.gpu == True:
+                        torch.save(model.module.state_dict(), '%s/model_best.pth' % (output_path))
+                    else:
+                        torch.save(model.state_dict(), '%s/model_best.pth' % (output_path))
             elif eval_metric == 'editdistance':
                 if test_acc < best_acc:
                     print("Save current best model with accuracy:", test_acc)
                     best_acc = test_acc
-                    torch.save(model.state_dict(), '%s/model_best.pth' % (output_path))
+                    if torch.cuda.is_available() == True and opt.gpu == True:
+                        torch.save(model.module.state_dict(), '%s/model_best.pth' % (output_path))
+                    else:
+                        torch.save(model.state_dict(), '%s/model_best.pth' % (output_path))
