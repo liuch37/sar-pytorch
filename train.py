@@ -122,7 +122,7 @@ if __name__ == '__main__':
     else:
         model = model.to(device)
 
-    if trained_model_path == '':
+    if trained_model_path != '':
         model.load_state_dict(torch.load(trained_model_path, map_location=lambda storage, loc: storage), strict=False)
 
     optimizer = optim.Adam(model.parameters(), lr=0.001)
