@@ -213,3 +213,4 @@ if __name__ == '__main__':
                         torch.save(model.module.state_dict(), '%s/model_best.pth' % (output_path))
                     else:
                         torch.save(model.state_dict(), '%s/model_best.pth' % (output_path))
+    print("Best test accuracy is:", best_acc)
