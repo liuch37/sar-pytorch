@@ -117,10 +117,16 @@ if __name__ == '__main__':
     print("Create model......")
     model = sar(Channel, feature_height, feature_width, embedding_dim, output_classes, hidden_units, layers, keep_prob, seq_len, device)
 
-    model = torch.nn.DataParallel(model).to(device)
+    if torch.cuda.is_available() == True and opt.gpu == True:
+        model = torch.nn.DataParallel(model).to(device)
+    else:
+        model = model.to(device)
 
     if trained_model_path != '':
         model.load_state_dict(torch.load(trained_model_path))
+    else:
+        print("Error: Empty model path!")
+        exit(1)
 
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     lmbda = lambda epoch: 0.9**(epoch // 300) if epoch < 13200 else 10**(-2)
