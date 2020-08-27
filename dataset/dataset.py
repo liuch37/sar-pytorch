@@ -82,9 +82,9 @@ def iiit5k_mat_extractor(label_path):
     for i in range(len(mat_contents[key][0])):
         name = mat_contents[key][0][i][0][0]
         label = mat_contents[key][0][i][1][0]
-        small_lexi = [item[0] for item in mat_contents[key][0][i][2][0]]
-        medium_lexi = [item[0] for item in mat_contents[key][0][i][3][0]]
-        dict_img.append([name, label, small_lexi, medium_lexi])
+        #small_lexi = [item[0] for item in mat_contents[key][0][i][2][0]]
+        #medium_lexi = [item[0] for item in mat_contents[key][0][i][3][0]]
+        dict_img.append([name, label])
 
     return dict_img
 
@@ -166,10 +166,10 @@ class iiit5k_dataset_builder(data.Dataset):
 
         for items in self.dictionary:
             if items[0].split('/')[-1] in self.total_img_name:
-                self.dataset.append([items[0].split('/')[-1],items[1],items[2],items[3]])
+                self.dataset.append([items[0].split('/')[-1],items[1]])
 
     def __getitem__(self, index):
-        img_name, label, small_lex, medium_lex = self.dataset[index]
+        img_name, label = self.dataset[index]
         IMG = cv2.imread(os.path.join(self.total_img_path,img_name))
         IMG = cv2.resize(IMG, (self.width, self.height)) # resize
         IMG = (IMG - 127.5)/127.5 # normalization to [-1,1]
