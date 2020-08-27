@@ -122,11 +122,8 @@ if __name__ == '__main__':
     else:
         model = model.to(device)
 
-    if trained_model_path != '':
-        model.load_state_dict(torch.load(trained_model_path))
-    else:
-        print("Error: Empty model path!")
-        exit(1)
+    if trained_model_path == '':
+        model.load_state_dict(torch.load(trained_model_path, map_location=lambda storage, loc: storage), strict=False)
 
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     lmbda = lambda epoch: 0.9**(epoch // 300) if epoch < 13200 else 10**(-2)
