@@ -151,7 +151,7 @@ if __name__ == '__main__':
     else:
         print("Wrong --metric argument, set it to default")
         eval_metric = 'accuracy'
-        best_acc = 0.0
+        best_acc = float('-inf')
 
     for epoch in range(epochs):
         M_list = []
@@ -205,7 +205,7 @@ if __name__ == '__main__':
             with open(os.path.join(output_path,'statistics.txt'), 'a') as f:
                 f.write("{} {}\n".format(train_acc, test_acc))
             if eval_metric == 'accuracy':
-                if test_acc > best_acc:
+                if test_acc >= best_acc:
                     print("Save current best model with accuracy:", test_acc)
                     best_acc = test_acc
                     if torch.cuda.is_available() == True and opt.gpu == True:
@@ -213,7 +213,7 @@ if __name__ == '__main__':
                     else:
                         torch.save(model.state_dict(), '%s/model_best.pth' % (output_path))
             elif eval_metric == 'editdistance':
-                if test_acc < best_acc:
+                if test_acc <= best_acc:
                     print("Save current best model with accuracy:", test_acc)
                     best_acc = test_acc
                     if torch.cuda.is_available() == True and opt.gpu == True:
