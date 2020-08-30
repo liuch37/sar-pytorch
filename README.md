@@ -1,6 +1,6 @@
 # Show, Attend and Read - A PyTorch Implementation
 
-Implementation of Show, Attend and Read: A Simple and Strong Baseline for Irregular Text Recognition in AAAI 2019, with PyTorch. 
+Implementation of Show, Attend and Read: A Simple and Strong Baseline for Irregular Text Recognition in AAAI 2019, with PyTorch >= v1.4.0. 
 
 ## Task
 
