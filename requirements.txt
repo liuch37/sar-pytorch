@@ -1,3 +1,5 @@
 editdistance
 opencv-python
 scipy
+torch
+torchvision
