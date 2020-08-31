@@ -190,6 +190,49 @@ class iiit5k_dataset_builder(data.Dataset):
     def __len__(self):
         return len(self.dataset)
 
+class syn90k_dataset_builder(data.Dataset):
+    def __init__(self, height, width, seq_len, total_img_path):
+        '''
+        height: input height to model
+        width: input width to model
+        total_img_path: path with all images
+        seq_len: sequence length
+        '''
+        self.total_img_path = total_img_path
+        self.height = height
+        self.width = width
+        self.seq_len = seq_len
+        self.total_img_name = os.listdir(total_img_path)
+        self.dataset = []
+        self.voc, self.char2id, _ = dictionary_generator()
+        self.output_classes = len(self.voc)
+
+        for img_name in self.total_img_name:
+            _, label, _ = img_name.split('_')
+            self.dataset.append([img_name, label])
+
+    def __getitem__(self, index):
+        img_name, label = self.dataset[index]
+        IMG = cv2.imread(os.path.join(self.total_img_path,img_name))
+        IMG = cv2.resize(IMG, (self.width, self.height)) # resize
+        IMG = (IMG - 127.5)/127.5 # normalization to [-1,1]
+        IMG = torch.FloatTensor(IMG) # convert to tensor [H, W, C]
+        IMG = IMG.permute(2,0,1) # [C, H, W]
+        y_true = np.ones(self.seq_len)*self.char2id['PAD'] # initialize y_true with 'PAD', size [seq_len]
+        # label processing
+        for i, c in enumerate(label):
+            index = self.char2id[c]
+            y_true[i] = index
+        y_true[-1] = self.char2id['END'] # always put 'END' in the end
+        y_true = y_true.astype(int) # must to integer index for one-hot encoding
+        # convert to one-hot encoding
+        y_onehot = np.eye(self.output_classes)[y_true] # [seq_len, output_classes]
+
+        return IMG, torch.FloatTensor(y_onehot)
+
+    def __len__(self):
+        return len(self.dataset)
+
 class test_dataset_builder(data.Dataset):
     def __init__(self, height, width, img_path):
         '''
@@ -225,6 +268,8 @@ if __name__ == '__main__':
     img_path_iiit = '../IIIT5K/train/'
     annotation_path_iiit = '../IIIT5K/traindata.mat'
 
+    img_path_syn90k = '../Syn90k/train/'
+
     height = 48 # input height pixel
     width = 64 # input width pixel
     seq_len = 40 # sequence length
@@ -244,6 +289,8 @@ if __name__ == '__main__':
 
     train_dataset_iiit5k = iiit5k_dataset_builder(height, width, seq_len, img_path_iiit, annotation_path_iiit)
 
+    train_dataset_syn90k = syn90k_dataset_builder(height, width, seq_len, img_path_syn90k)
+
     for i, item in enumerate(train_dataset):
         print(item[0].shape,item[1].shape)
         IMG = item[0].permute(1,2,0)
@@ -257,3 +304,10 @@ if __name__ == '__main__':
         IMG = IMG.detach().numpy()
         IMG = (IMG*127.5+127.5).astype(np.uint8)
         cv2.imwrite('../test/iiit_'+str(i)+'.jpg', IMG)
+
+    for i, item in enumerate(train_dataset_syn90k):
+        print(item[0].shape,item[1].shape)
+        IMG = item[0].permute(1,2,0)
+        IMG = IMG.detach().numpy()
+        IMG = (IMG*127.5+127.5).astype(np.uint8)
+        cv2.imwrite('../test/syn90k_'+str(i)+'.jpg', IMG)
