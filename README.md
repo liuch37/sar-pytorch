@@ -42,8 +42,11 @@ python inference.py --batch 32 --input input_folder --model model_path --gpu Tru
 ![Statstics for IIIT5K training](https://github.com/liuch37/sar-pytorch/blob/master/misc/iiit5k_results.png)
 
 Input: 
+
 ![Attention map for char 0](https://github.com/liuch37/sar-pytorch/blob/master/misc/iiit_0.jpg)
+
 Output attention map per character:
+
 ![Attention map for char 0](https://github.com/liuch37/sar-pytorch/blob/master/misc/iiit_0_0.png)
 ![Attention map for char 1](https://github.com/liuch37/sar-pytorch/blob/master/misc/iiit_0_1.png)
 
