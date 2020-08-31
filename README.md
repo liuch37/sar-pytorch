@@ -16,7 +16,7 @@ Implementation of Show, Attend and Read: A Simple and Strong Baseline for Irregu
 
 - [x] Street View Text: http://vision.ucsd.edu/~kai/svt/
 - [x] IIIT5K: https://cvit.iiit.ac.in/research/projects/cvit-projects/the-iiit-5k-word-dataset
-- [ ] Syn90k: https://www.robots.ox.ac.uk/~vgg/data/text/
+- [x] Syn90k: https://www.robots.ox.ac.uk/~vgg/data/text/
 - [ ] SynthText: https://www.robots.ox.ac.uk/~vgg/data/scenetext/
 
 ## Command
