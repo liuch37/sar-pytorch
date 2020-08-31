@@ -12,6 +12,7 @@ import torch.optim as optim
 import torch.utils.data
 import torch.nn.functional as F
 from torch.multiprocessing import freeze_support
+import cv2
 import pdb
 # internal package
 from dataset import dataset
@@ -111,6 +112,10 @@ if __name__ == '__main__':
                 predict_word = end_cut(pred_choice[idx].detach().cpu().numpy(), char2id, id2char)
                 # generate attention heatmap
                 heatmaps, overlayed_images = attention_map(predict_word, x[idx], att_weights[idx,:,:,:,:])
+                '''
+                for i, img in enumerate(overlayed_images):
+                    cv2.imwrite('./attmap/'+image_name[idx][:-4]+'_'+str(i)+'.png', img)
+                '''
                 # write to output path
                 f.write("{} {}\n".format(image_name[idx], predict_word))
     print("Inference done!")
