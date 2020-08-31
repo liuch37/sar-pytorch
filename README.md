@@ -35,6 +35,9 @@ python inference.py --batch 32 --input input_folder --model model_path --gpu Tru
 
 ## Results
 
+### SVT train and test
+![Statstics for SVT training](https://github.com/liuch37/sar-pytorch/blob/master/misc/svt_results.png)
+
 ## Source
 
 [1] Original paper: https://arxiv.org/abs/1811.00751
