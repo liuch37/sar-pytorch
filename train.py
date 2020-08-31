@@ -32,7 +32,7 @@ if __name__ == '__main__':
     parser.add_argument('--output', type=str, default='str', help='output folder name')
     parser.add_argument('--model', type=str, default='', help='model path')
     parser.add_argument('--dataset', type=str, required=True, help="dataset path")
-    parser.add_argument('--dataset_type', type=str, default='svt', help="dataset type - svt|iiit5k")
+    parser.add_argument('--dataset_type', type=str, default='svt', help="dataset type - svt|iiit5k|syn90k")
     parser.add_argument('--gpu', type=bool, default=False, help="GPU being used or not")
     parser.add_argument('--metric', type=str, default='accuracy', help="evaluation metric - accuracy|editdistance")
     
@@ -81,18 +81,23 @@ if __name__ == '__main__':
     # create dataset
     print("Create dataset......")
     if dataset_type == 'svt': # street view text dataset
-        img_path = os.path.join(dataset_path,'img')
-        train_xml_path = os.path.join(dataset_path,'train.xml')
-        test_xml_path = os.path.join(dataset_path,'test.xml')
+        img_path = os.path.join(dataset_path, 'img')
+        train_xml_path = os.path.join(dataset_path, 'train.xml')
+        test_xml_path = os.path.join(dataset_path, 'test.xml')
         train_dataset = dataset.svt_dataset_builder(Height, Width, seq_len, img_path, train_xml_path)
         test_dataset = dataset.svt_dataset_builder(Height, Width, seq_len, img_path, test_xml_path)
     elif dataset_type == 'iiit5k': # IIIT5k dataset
         train_img_path = os.path.join(dataset_path, 'train')
-        test_img_path = os.path.join(dataset_path,'test')
+        test_img_path = os.path.join(dataset_path, 'test')
         train_annotation_path = os.path.join(dataset_path, 'traindata.mat')
         test_annotation_path = os.path.join(dataset_path, 'testdata.mat')
         train_dataset = dataset.iiit5k_dataset_builder(Height, Width, seq_len, train_img_path, train_annotation_path)
         test_dataset = dataset.iiit5k_dataset_builder(Height, Width, seq_len, test_img_path, test_annotation_path)
+    elif dataset_type == 'syn90k': # IIIT5k dataset
+        train_img_path = os.path.join(dataset_path, 'train')
+        test_img_path = os.path.join(dataset_path, 'test')
+        train_dataset = dataset.syn90k_dataset_builder(Height, Width, seq_len, train_img_path)
+        test_dataset = dataset.syn90k_dataset_builder(Height, Width, seq_len, test_img_path)
     else:
         print("Not supported yet!")
         exit(1)
