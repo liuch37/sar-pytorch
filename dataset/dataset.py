@@ -88,6 +88,44 @@ def iiit5k_mat_extractor(label_path):
 
     return dict_img
 
+def synthtext_mat_extractor(label_path):
+    '''
+    This code is to extract mat labels from SynthText dataset
+    Input:
+    label_path: mat label path file
+    Output:
+    dict_img: [image_name, bounding box, labels]
+    '''
+    # create empty list for news items
+    dict_img = []
+
+    mat_contents = loadmat(label_path)
+
+    for i in range(len(mat_contents['imnames'][0])):
+        image_name = mat_contents['imnames'][0][i][0].split('/')[-1]
+        word_bdbs = []
+        for bdb_idx in range(mat_contents['wordBB'][0][i].shape[-1]):
+            word_bdb = mat_contents['wordBB'][0][i][:,:,bdb_idx] # shape (2,4), i.e., 4 points for (x,y)
+            xmin = min(word_bdb[0,:])
+            ymin = min(word_bdb[1,:])
+            xmax = max(word_bdb[0,:])
+            ymax = max(word_bdb[1,:])
+            word_bdbs.append((xmin,ymin,xmax,ymax))
+        for bdb_idx in range(mat_contents['charBB'][0][i].shape[-1]):
+            char_bdb = mat_contents['charBB'][0][i][:,:,bdb_idx] # shape (2,4), i.e., 4 points for (x,y)
+        labels = []
+        for label_idx in range(mat_contents['txt'][0][i].shape[0]):
+            label_total = mat_contents['txt'][0][i][label_idx]
+            L = label_total.split('\n')
+            for l in L:
+                labels.append(l.strip(''))
+        if len(word_bdbs) != len(labels):
+            print("Wrong parsing for labels!")
+        for word_bdb, label in zip(word_bdbs, labels):
+            dict_img.append([image_name, word_bdb, label])
+
+    return dict_img
+
 class svt_dataset_builder(data.Dataset):
     def __init__(self, height, width, seq_len, total_img_path, xml_path):
         '''
@@ -233,6 +271,51 @@ class syn90k_dataset_builder(data.Dataset):
     def __len__(self):
         return len(self.dataset)
 
+class synthtext_dataset_builder(data.Dataset):
+    def __init__(self, height, width, seq_len, total_img_path, annotation_path):
+        '''
+        height: input height to model
+        width: input width to model
+        total_img_path: path with all images
+        annotation_path: mat labeling file
+        seq_len: sequence length
+        '''
+        self.total_img_path = total_img_path
+        self.height = height
+        self.width = width
+        self.seq_len = seq_len
+        self.dictionary = synthtext_mat_extractor(annotation_path)
+        self.total_img_name = os.listdir(total_img_path)
+        self.dataset = []
+        self.voc, self.char2id, _ = dictionary_generator()
+        self.output_classes = len(self.voc)
+
+        for items in self.dictionary:
+            if items[0] in self.total_img_name:
+                self.dataset.append([items[0],items[1]])
+
+    def __getitem__(self, index):
+        img_name, label = self.dataset[index]
+        IMG = cv2.imread(os.path.join(self.total_img_path,img_name))
+        IMG = cv2.resize(IMG, (self.width, self.height)) # resize
+        IMG = (IMG - 127.5)/127.5 # normalization to [-1,1]
+        IMG = torch.FloatTensor(IMG) # convert to tensor [H, W, C]
+        IMG = IMG.permute(2,0,1) # [C, H, W]
+        y_true = np.ones(self.seq_len)*self.char2id['PAD'] # initialize y_true with 'PAD', size [seq_len]
+        # label processing
+        for i, c in enumerate(label):
+            index = self.char2id[c]
+            y_true[i] = index
+        y_true[-1] = self.char2id['END'] # always put 'END' in the end
+        y_true = y_true.astype(int) # must to integer index for one-hot encoding
+        # convert to one-hot encoding
+        y_onehot = np.eye(self.output_classes)[y_true] # [seq_len, output_classes]
+
+        return IMG, torch.FloatTensor(y_onehot)
+
+    def __len__(self):
+        return len(self.dataset)
+
 class test_dataset_builder(data.Dataset):
     def __init__(self, height, width, img_path):
         '''
@@ -270,6 +353,9 @@ if __name__ == '__main__':
 
     img_path_syn90k = '../Syn90k/train/'
 
+    img_path_synthtext = '../SynthText/train/'
+    annotation_path_synthtext = '../SynthText/gt.mat'
+
     height = 48 # input height pixel
     width = 64 # input width pixel
     seq_len = 40 # sequence length
@@ -290,6 +376,9 @@ if __name__ == '__main__':
     train_dataset_iiit5k = iiit5k_dataset_builder(height, width, seq_len, img_path_iiit, annotation_path_iiit)
 
     train_dataset_syn90k = syn90k_dataset_builder(height, width, seq_len, img_path_syn90k)
+
+    train_dict_synthtext = synthtext_mat_extractor(annotation_path_synthtext)
+    print("Dictionary for training set is:", train_dict_synthtext)
 
     for i, item in enumerate(train_dataset):
         print(item[0].shape,item[1].shape)
