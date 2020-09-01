@@ -50,7 +50,7 @@ Output attention map per character:
 ![Attention map for char 0](https://github.com/liuch37/sar-pytorch/blob/master/misc/iiit_0_0.png)
 ![Attention map for char 1](https://github.com/liuch37/sar-pytorch/blob/master/misc/iiit_0_1.png)
 
-### Syn90K
+### Syn90K (10k for training/3k for testing)
 ![Statstics for Syn90K training](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_results.png)
 
 Input: 
