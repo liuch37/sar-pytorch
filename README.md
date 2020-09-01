@@ -43,12 +43,30 @@ python inference.py --batch 32 --input input_folder --model model_path --gpu Tru
 
 Input: 
 
-![Attention map for char 0](https://github.com/liuch37/sar-pytorch/blob/master/misc/iiit_0.jpg)
+![Input image](https://github.com/liuch37/sar-pytorch/blob/master/misc/iiit_0.jpg)
 
 Output attention map per character:
 
 ![Attention map for char 0](https://github.com/liuch37/sar-pytorch/blob/master/misc/iiit_0_0.png)
 ![Attention map for char 1](https://github.com/liuch37/sar-pytorch/blob/master/misc/iiit_0_1.png)
+
+### Syn90K
+![Statstics for Syn90K training](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_results.png)
+
+Input: 
+
+![Input image](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_0.jpg)
+
+Output attention map per character:
+
+![Attention map for char 0](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_0_0.png)
+![Attention map for char 1](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_0_1.png)
+![Attention map for char 1](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_0_2.png)
+![Attention map for char 1](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_0_3.png)
+![Attention map for char 1](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_0_4.png)
+![Attention map for char 1](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_0_5.png)
+![Attention map for char 1](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_0_6.png)
+![Attention map for char 1](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_0_7.png)
 
 ## Source
 
