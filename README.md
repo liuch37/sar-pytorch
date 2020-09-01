@@ -61,12 +61,12 @@ Output attention map per character:
 
 ![Attention map for char 0](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_0_0.png)
 ![Attention map for char 1](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_0_1.png)
-![Attention map for char 1](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_0_2.png)
-![Attention map for char 1](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_0_3.png)
-![Attention map for char 1](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_0_4.png)
-![Attention map for char 1](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_0_5.png)
-![Attention map for char 1](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_0_6.png)
-![Attention map for char 1](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_0_7.png)
+![Attention map for char 2](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_0_2.png)
+![Attention map for char 3](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_0_3.png)
+![Attention map for char 4](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_0_4.png)
+![Attention map for char 5](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_0_5.png)
+![Attention map for char 6](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_0_6.png)
+![Attention map for char 7](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_0_7.png)
 
 ## Source
 
