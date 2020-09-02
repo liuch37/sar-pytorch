@@ -32,7 +32,7 @@ if __name__ == '__main__':
     parser.add_argument('--output', type=str, default='str', help='output folder name')
     parser.add_argument('--model', type=str, default='', help='model path')
     parser.add_argument('--dataset', type=str, required=True, help="dataset path")
-    parser.add_argument('--dataset_type', type=str, default='svt', help="dataset type - svt|iiit5k|syn90k")
+    parser.add_argument('--dataset_type', type=str, default='svt', help="dataset type - svt|iiit5k|syn90k|synthtext")
     parser.add_argument('--gpu', type=bool, default=False, help="GPU being used or not")
     parser.add_argument('--metric', type=str, default='accuracy', help="evaluation metric - accuracy|editdistance")
     
@@ -98,6 +98,12 @@ if __name__ == '__main__':
         test_img_path = os.path.join(dataset_path, 'test')
         train_dataset = dataset.syn90k_dataset_builder(Height, Width, seq_len, train_img_path)
         test_dataset = dataset.syn90k_dataset_builder(Height, Width, seq_len, test_img_path)
+    elif dataset_type == 'synthtext': # SynthText dataset
+        train_img_path = os.path.join(dataset_path, 'train')
+        test_img_path = os.path.join(dataset_path, 'test')
+        annotation_path = os.path.join(dataset_path, 'gt.mat')
+        train_dataset = dataset.synthtext_dataset_builder(Height, Width, seq_len, train_img_path, annotation_path)
+        test_dataset = dataset.synthtext_dataset_builder(Height, Width, seq_len, test_img_path, annotation_path)
     else:
         print("Not supported yet!")
         exit(1)
