@@ -29,6 +29,21 @@ def dictionary_generator(END='END', PADDING='PAD', UNKNOWN='UNK'):
 
     return voc, char2id, id2char
 
+def end_cut(indices, char2id, id2char):
+    '''
+    indices: numpy array or list of character indices
+    charid: char to id conversion
+    id2char: id to char conversion
+    '''
+    cut_indices = []
+    for id in indices:
+        if id != char2id['END']:
+            if id != char2id['UNK'] and id != char2id['PAD']:
+                cut_indices.append(id2char[id])
+        else:
+            break
+    return ''.join(cut_indices)
+
 def svt_xml_extractor(label_path):
     '''
     This code is to extract xml labels from SVT dataset
@@ -389,6 +404,8 @@ if __name__ == '__main__':
     width = 64 # input width pixel
     seq_len = 40 # sequence length
 
+    voc, char2id, id2char = dictionary_generator()
+
     train_dict = svt_xml_extractor(train_xml_path)
     print("Dictionary for training set is:", train_dict)
 
@@ -437,4 +454,7 @@ if __name__ == '__main__':
         IMG = item[0].permute(1,2,0)
         IMG = IMG.detach().numpy()
         IMG = (IMG*127.5+127.5).astype(np.uint8)
+        target = item[1].max(1)[1] # [seq_len]
+        label = end_cut(target.detach().cpu().numpy(), char2id, id2char)
+        print(label)
         cv2.imwrite('../test/synthtext_'+str(i)+'.jpg', IMG)
