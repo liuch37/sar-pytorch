@@ -17,7 +17,7 @@ Implementation of Show, Attend and Read: A Simple and Strong Baseline for Irregu
 - [x] Street View Text: http://vision.ucsd.edu/~kai/svt/
 - [x] IIIT5K: https://cvit.iiit.ac.in/research/projects/cvit-projects/the-iiit-5k-word-dataset
 - [x] Syn90k: https://www.robots.ox.ac.uk/~vgg/data/text/
-- [ ] SynthText: https://www.robots.ox.ac.uk/~vgg/data/scenetext/
+- [x] SynthText: https://www.robots.ox.ac.uk/~vgg/data/scenetext/
 
 ## Command
 
@@ -67,6 +67,12 @@ Output attention map per character:
 ![Attention map for char 5](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_0_5.png)
 ![Attention map for char 6](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_0_6.png)
 ![Attention map for char 7](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_0_7.png)
+
+### SynthText (20k for training/4k for testing)
+
+Input:
+
+Output attention map per character:
 
 ## Source
 
