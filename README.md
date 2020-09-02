@@ -68,7 +68,7 @@ Output attention map per character:
 ![Attention map for char 6](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_0_6.png)
 ![Attention map for char 7](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_0_7.png)
 
-### SynthText (8k for training/2k for testing)
+### SynthText (80k for training/20k for testing)
 
 Input:
 
