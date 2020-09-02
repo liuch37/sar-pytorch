@@ -104,23 +104,40 @@ def synthtext_mat_extractor(label_path):
     for i in range(len(mat_contents['imnames'][0])):
         image_name = mat_contents['imnames'][0][i][0].split('/')[-1]
         word_bdbs = []
-        for bdb_idx in range(mat_contents['wordBB'][0][i].shape[-1]):
-            word_bdb = mat_contents['wordBB'][0][i][:,:,bdb_idx] # shape (2,4), i.e., 4 points for (x,y)
+        if len(mat_contents['wordBB'][0][i].shape) == 3:
+            for bdb_idx in range(mat_contents['wordBB'][0][i].shape[-1]):
+                word_bdb = mat_contents['wordBB'][0][i][:,:,bdb_idx] # shape (2,4), i.e., 4 points for (x,y)
+                xmin = min(word_bdb[0,:])
+                ymin = min(word_bdb[1,:])
+                xmax = max(word_bdb[0,:])
+                ymax = max(word_bdb[1,:])
+                word_bdbs.append((int(xmin),int(ymin),int(xmax),int(ymax)))
+        else:
+            word_bdb = mat_contents['wordBB'][0][i][:,:] # shape (2,4), i.e., 4 points for (x,y)
             xmin = min(word_bdb[0,:])
             ymin = min(word_bdb[1,:])
             xmax = max(word_bdb[0,:])
             ymax = max(word_bdb[1,:])
-            word_bdbs.append((xmin,ymin,xmax,ymax))
-        for bdb_idx in range(mat_contents['charBB'][0][i].shape[-1]):
-            char_bdb = mat_contents['charBB'][0][i][:,:,bdb_idx] # shape (2,4), i.e., 4 points for (x,y)
+            word_bdbs.append((int(xmin),int(ymin),int(xmax),int(ymax)))
+
+        if len(mat_contents['charBB'][0][i].shape) == 3:
+            for bdb_idx in range(mat_contents['charBB'][0][i].shape[-1]):
+                char_bdb = mat_contents['charBB'][0][i][:,:,bdb_idx] # shape (2,4), i.e., 4 points for (x,y)
+        else:
+            char_bdb = mat_contents['charBB'][0][i][:,:] # shape (2,4), i.e., 4 points for (x,y)
+
         labels = []
         for label_idx in range(mat_contents['txt'][0][i].shape[0]):
             label_total = mat_contents['txt'][0][i][label_idx]
             L = label_total.split('\n')
             for l in L:
-                labels.append(l.strip(''))
+                l = l.strip()
+                l = list(l.split(' '))
+                l = [item for item in l if item != '']
+                labels += l
         if len(word_bdbs) != len(labels):
-            print("Wrong parsing for labels!")
+            print("Wrong parsing for labels in SynthText dataset!")
+            exit(1)
         for word_bdb, label in zip(word_bdbs, labels):
             dict_img.append([image_name, word_bdb, label])
 
@@ -292,11 +309,23 @@ class synthtext_dataset_builder(data.Dataset):
 
         for items in self.dictionary:
             if items[0] in self.total_img_name:
-                self.dataset.append([items[0],items[1]])
+                self.dataset.append([items[0],items[1],items[2]])
 
     def __getitem__(self, index):
-        img_name, label = self.dataset[index]
+        img_name, bdb, label = self.dataset[index]
         IMG = cv2.imread(os.path.join(self.total_img_path,img_name))
+        xmin, ymin, xmax, ymax = bdb
+        (H, W, _) = IMG.shape
+        xmin = max(0, xmin)
+        xmin = min(W-1, xmin)
+        ymin = max(0, ymin)
+        ymin = min(H-1, ymin)
+        xmax = max(0, xmax)
+        xmax = min(W-1, xmax)
+        ymax = max(0, ymax)
+        ymax = min(H-1, ymax)
+        # image processing:
+        IMG = IMG[ymin:ymax+1,xmin:xmax+1,:] # crop
         IMG = cv2.resize(IMG, (self.width, self.height)) # resize
         IMG = (IMG - 127.5)/127.5 # normalization to [-1,1]
         IMG = torch.FloatTensor(IMG) # convert to tensor [H, W, C]
@@ -378,7 +407,9 @@ if __name__ == '__main__':
     train_dataset_syn90k = syn90k_dataset_builder(height, width, seq_len, img_path_syn90k)
 
     train_dict_synthtext = synthtext_mat_extractor(annotation_path_synthtext)
-    print("Dictionary for training set is:", train_dict_synthtext)
+    #print("Dictionary for training set is:", train_dict_synthtext)
+
+    train_dataset_synthtext = synthtext_dataset_builder(height, width, seq_len, img_path_synthtext, annotation_path_synthtext)
 
     for i, item in enumerate(train_dataset):
         print(item[0].shape,item[1].shape)
@@ -400,3 +431,10 @@ if __name__ == '__main__':
         IMG = IMG.detach().numpy()
         IMG = (IMG*127.5+127.5).astype(np.uint8)
         cv2.imwrite('../test/syn90k_'+str(i)+'.jpg', IMG)
+
+    for i, item in enumerate(train_dataset_synthtext):
+        print(item[0].shape,item[1].shape)
+        IMG = item[0].permute(1,2,0)
+        IMG = IMG.detach().numpy()
+        IMG = (IMG*127.5+127.5).astype(np.uint8)
+        cv2.imwrite('../test/synthtext_'+str(i)+'.jpg', IMG)
