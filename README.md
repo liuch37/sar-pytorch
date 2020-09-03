@@ -69,10 +69,17 @@ Output attention map per character:
 ![Attention map for char 7](https://github.com/liuch37/sar-pytorch/blob/master/misc/syn90k_0_7.png)
 
 ### SynthText (80k for training/20k for testing)
+![Statstics for SynthText training](https://github.com/liuch37/sar-pytorch/blob/master/misc/synthtext_results.png)
 
 Input:
 
+![Input image](https://github.com/liuch37/sar-pytorch/blob/master/misc/synthtext_0.jpg)
+
 Output attention map per character:
+
+![Attention map for char 0](https://github.com/liuch37/sar-pytorch/blob/master/misc/synthtext_0_0.png)
+![Attention map for char 1](https://github.com/liuch37/sar-pytorch/blob/master/misc/synthtext_0_1.png)
+![Attention map for char 2](https://github.com/liuch37/sar-pytorch/blob/master/misc/synthtext_0_2.png)
 
 ## Source
 
